@@ -17,18 +17,15 @@ import android.view.WindowManager;
 import android.widget.Toast;
 import java.lang.reflect.Method;
 import java.security.SecureRandom;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import dev.rikka.shizuku.Shizuku;
+import rikka.shizuku.Shizuku;
 
 public class GestureAssistService extends AccessibilityService {
 
     private static final String TAG = "GestureService";
-    private static final float SCALE_FACTOR = 1440.0f;
+    private static final float SCALE_FACTOR = 20.0f; // Mày muốn 3-4 thì set 30-40
 
     private WindowManager wm;
     private OverlayView overlay;
-    private ScheduledExecutorService scheduler;
     private boolean isActive = false;
     private Vibrator vibrator;
     private float screenWidth, screenHeight;
@@ -44,29 +41,33 @@ public class GestureAssistService extends AccessibilityService {
             if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
                 isShizukuReady = true;
                 try {
+                    // Lấy service "input" qua Shizuku
                     inputManagerBinder = Shizuku.getSystemService("input");
                     if (inputManagerBinder != null) {
+                        // Lấy method injectInputEvent từ InputManager
                         injectMethod = inputManagerBinder.getClass().getMethod(
                                 "injectInputEvent", MotionEvent.class, int.class
                         );
                         Toast.makeText(this, "Shizuku + Input OK", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(this, "Không lấy được InputManager", Toast.LENGTH_SHORT).show();
                     }
                 } catch (Exception e) {
                     Log.e(TAG, "Shizuku init error", e);
+                    Toast.makeText(this, "Lỗi Shizuku: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 }
             } else {
                 Shizuku.requestPermission(1000);
-                Toast.makeText(this, "Xin quyền Shizuku...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Đang xin quyền Shizuku...", Toast.LENGTH_SHORT).show();
             }
         } else {
-            Toast.makeText(this, "Shizuku chưa chạy!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Shizuku chưa chạy! Hãy khởi động Shizuku trước.", Toast.LENGTH_LONG).show();
         }
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        scheduler = Executors.newSingleThreadScheduledExecutor();
         random = new SecureRandom();
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
@@ -78,7 +79,7 @@ public class GestureAssistService extends AccessibilityService {
 
         initShizuku();
         createOverlay();
-        Toast.makeText(this, "Kích hoạt 1440x + Shizuku", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Kích hoạt Duong Chai Dim OK", Toast.LENGTH_SHORT).show();
         isActive = true;
     }
 
@@ -109,25 +110,35 @@ public class GestureAssistService extends AccessibilityService {
         float rawX = rawEvent.getRawX();
         float rawY = rawEvent.getRawY();
 
-        float deltaX = (rawX - lastX) * SCALE_FACTOR;
-        float deltaY = (rawY - lastY) * SCALE_FACTOR;
-        float boostedX = Math.max(0, Math.min(screenWidth, lastX + deltaX));
-        float boostedY = Math.max(0, Math.min(screenHeight, lastY + deltaY));
-
-        if (action == MotionEvent.ACTION_DOWN && vibrator != null) {
-            if (Build.VERSION.SDK_INT >= 26) {
-                vibrator.vibrate(VibrationEffect.createOneShot(4, 20));
-            } else {
-                vibrator.vibrate(4);
+        if (action == MotionEvent.ACTION_DOWN) {
+            lastX = rawX;
+            lastY = rawY;
+            if (vibrator != null) {
+                if (Build.VERSION.SDK_INT >= 26) {
+                    vibrator.vibrate(VibrationEffect.createOneShot(4, 20));
+                } else {
+                    vibrator.vibrate(4);
+                }
             }
+            return;
         }
 
-        injectTouch(rawX, rawY, MotionEvent.ACTION_DOWN);
-        injectTouch(boostedX, boostedY, MotionEvent.ACTION_MOVE);
-        injectTouch(boostedX, boostedY, MotionEvent.ACTION_UP);
+        if (action == MotionEvent.ACTION_MOVE || action == MotionEvent.ACTION_UP) {
+            float deltaX = (rawX - lastX) * SCALE_FACTOR;
+            float deltaY = (rawY - lastY) * SCALE_FACTOR;
+            float boostedX = Math.max(0, Math.min(screenWidth, rawX + deltaX));
+            float boostedY = Math.max(0, Math.min(screenHeight, rawY + deltaY));
 
-        lastX = rawX;
-        lastY = rawY;
+            // Inject sự kiện DOWN tại vị trí raw
+            injectTouch(rawX, rawY, MotionEvent.ACTION_DOWN);
+            // Inject sự kiện MOVE với vị trí đã nhân
+            injectTouch(boostedX, boostedY, MotionEvent.ACTION_MOVE);
+            // Inject sự kiện UP tại vị trí nhân (hoặc giữ nguyên)
+            injectTouch(boostedX, boostedY, MotionEvent.ACTION_UP);
+
+            lastX = rawX;
+            lastY = rawY;
+        }
     }
 
     private void injectTouch(float x, float y, int action) {
@@ -151,7 +162,6 @@ public class GestureAssistService extends AccessibilityService {
             try { wm.removeView(overlay); } catch (Exception ignored) {}
             overlay = null;
         }
-        scheduler.shutdown();
         super.onDestroy();
     }
 
