@@ -15,14 +15,10 @@ import android.view.InputDevice;
 import android.view.MotionEvent;
 import android.view.WindowManager;
 import android.widget.Toast;
-
 import java.lang.reflect.Method;
 import java.security.SecureRandom;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import dev.rikka.shizuku.Shizuku;
 
 public class GestureAssistService extends AccessibilityService {
@@ -33,7 +29,7 @@ public class GestureAssistService extends AccessibilityService {
     private WindowManager wm;
     private OverlayView overlay;
     private ScheduledExecutorService scheduler;
-    private AtomicBoolean isActive = new AtomicBoolean(false);
+    private boolean isActive = false;
     private Vibrator vibrator;
     private float screenWidth, screenHeight;
     private float lastX, lastY;
@@ -53,25 +49,19 @@ public class GestureAssistService extends AccessibilityService {
                         injectMethod = inputManagerBinder.getClass().getMethod(
                                 "injectInputEvent", MotionEvent.class, int.class
                         );
-                        Toast.makeText(this, "✅ Shizuku + InputManager OK", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Shizuku + Input OK", Toast.LENGTH_SHORT).show();
                     }
                 } catch (Exception e) {
                     Log.e(TAG, "Shizuku init error", e);
                 }
             } else {
                 Shizuku.requestPermission(1000);
-                Toast.makeText(this, "📢 Đang xin quyền Shizuku...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Xin quyền Shizuku...", Toast.LENGTH_SHORT).show();
             }
         } else {
-            Toast.makeText(this, "❌ Shizuku chưa chạy!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Shizuku chưa chạy!", Toast.LENGTH_LONG).show();
         }
     }
-
-    @Override
-    public void onAccessibilityEvent(android.view.accessibility.AccessibilityEvent event) {}
-
-    @Override
-    public void onInterrupt() { deactivate(); }
 
     @Override
     public void onCreate() {
@@ -88,8 +78,8 @@ public class GestureAssistService extends AccessibilityService {
 
         initShizuku();
         createOverlay();
-        Toast.makeText(this, "🔥 1440x + Shizuku", Toast.LENGTH_SHORT).show();
-        activate();
+        Toast.makeText(this, "Kích hoạt 1440x + Shizuku", Toast.LENGTH_SHORT).show();
+        isActive = true;
     }
 
     private void createOverlay() {
@@ -97,7 +87,7 @@ public class GestureAssistService extends AccessibilityService {
             try { wm.removeView(overlay); } catch (Exception ignored) {}
         }
         overlay = new OverlayView(this);
-        overlay.setTouchInterceptor(new TouchInterceptor());
+        overlay.setTouchInterceptor(this::processTouch);
 
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
@@ -105,90 +95,71 @@ public class GestureAssistService extends AccessibilityService {
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
                         WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
-                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH |
-                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
                 PixelFormat.TRANSLUCENT
         );
         params.gravity = Gravity.TOP;
         wm.addView(overlay, params);
     }
 
-    private class TouchInterceptor implements OverlayView.TouchInterceptor {
-        @Override
-        public void onTouch(MotionEvent event) {
-            processTouch(event);
-        }
-    }
-
     private void processTouch(MotionEvent rawEvent) {
-        if (!isActive.get() || !isShizukuReady || injectMethod == null) return;
+        if (!isActive || !isShizukuReady || injectMethod == null) return;
 
         int action = rawEvent.getActionMasked();
         float rawX = rawEvent.getRawX();
         float rawY = rawEvent.getRawY();
 
-        float jitterX = (random.nextFloat() - 0.5f) * 0.001f * 2;
-        float jitterY = (random.nextFloat() - 0.5f) * 0.001f * 2;
-        float noisyX = rawX + jitterX;
-        float noisyY = rawY + jitterY;
-
-        float deltaX = (noisyX - lastX) * SCALE_FACTOR;
-        float deltaY = (noisyY - lastY) * SCALE_FACTOR;
-
-        float boostedX = lastX + deltaX;
-        float boostedY = lastY + deltaY;
-
-        boostedX = Math.max(0, Math.min(screenWidth, boostedX));
-        boostedY = Math.max(0, Math.min(screenHeight, boostedY));
+        float deltaX = (rawX - lastX) * SCALE_FACTOR;
+        float deltaY = (rawY - lastY) * SCALE_FACTOR;
+        float boostedX = Math.max(0, Math.min(screenWidth, lastX + deltaX));
+        float boostedY = Math.max(0, Math.min(screenHeight, lastY + deltaY));
 
         if (action == MotionEvent.ACTION_DOWN && vibrator != null) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (Build.VERSION.SDK_INT >= 26) {
                 vibrator.vibrate(VibrationEffect.createOneShot(4, 20));
             } else {
                 vibrator.vibrate(4);
             }
         }
 
-        injectTouch(noisyX, noisyY, MotionEvent.ACTION_DOWN);
+        injectTouch(rawX, rawY, MotionEvent.ACTION_DOWN);
         injectTouch(boostedX, boostedY, MotionEvent.ACTION_MOVE);
         injectTouch(boostedX, boostedY, MotionEvent.ACTION_UP);
 
-        lastX = noisyX;
-        lastY = noisyY;
+        lastX = rawX;
+        lastY = rawY;
     }
 
     private void injectTouch(float x, float y, int action) {
         if (injectMethod == null) return;
-
         long now = SystemClock.uptimeMillis();
         MotionEvent event = MotionEvent.obtain(now, now, action, x, y, 0);
         event.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-
         try {
             injectMethod.invoke(inputManagerBinder, event, 0);
         } catch (Exception e) {
-            Log.e(TAG, "Inject failed", e);
+            Log.e(TAG, "Inject fail", e);
         } finally {
             event.recycle();
         }
     }
 
-    private void activate() { isActive.set(true); }
-
-    private void deactivate() {
-        isActive.set(false);
+    @Override
+    public void onDestroy() {
+        isActive = false;
         if (overlay != null) {
             try { wm.removeView(overlay); } catch (Exception ignored) {}
             overlay = null;
         }
-    }
-
-    @Override
-    public void onDestroy() {
-        deactivate();
         scheduler.shutdown();
         super.onDestroy();
     }
+
+    @Override
+    public void onAccessibilityEvent(android.view.accessibility.AccessibilityEvent event) {}
+
+    @Override
+    public void onInterrupt() {}
 
     private static class OverlayView extends android.view.View {
         private TouchInterceptor interceptor;
@@ -196,7 +167,6 @@ public class GestureAssistService extends AccessibilityService {
         public OverlayView(Context context) {
             super(context);
             setFocusable(false);
-            setKeepScreenOn(true);
         }
 
         public void setTouchInterceptor(TouchInterceptor interceptor) {
@@ -214,7 +184,7 @@ public class GestureAssistService extends AccessibilityService {
             return false;
         }
 
-        public interface TouchInterceptor {
+        interface TouchInterceptor {
             void onTouch(MotionEvent event);
         }
     }
