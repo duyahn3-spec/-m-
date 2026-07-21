@@ -2,6 +2,7 @@ package com.gesture.assist;
 
 import android.accessibilityservice.AccessibilityService;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.IBinder;
@@ -22,8 +23,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import rikka.shizuku.Shizuku;
-import rikka.shizuku.SystemServiceHelper;
+import dev.rikka.shizuku.Shizuku;
 
 public class GestureAssistService extends AccessibilityService {
 
@@ -41,16 +41,29 @@ public class GestureAssistService extends AccessibilityService {
 
     private IBinder inputManagerBinder;
     private Method injectMethod;
+    private boolean isShizukuReady = false;
 
-    // === TỰ XIN QUYỀN SHIZUKU ===
-    private void requestShizukuPermission() {
+    private void initShizuku() {
         if (Shizuku.pingBinder()) {
-            if (!Shizuku.isPermissionGranted()) {
-                Shizuku.requestPermission(0);
-                Toast.makeText(this, "Đang yêu cầu quyền Shizuku...", Toast.LENGTH_SHORT).show();
+            if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
+                isShizukuReady = true;
+                try {
+                    inputManagerBinder = Shizuku.getSystemService("input");
+                    if (inputManagerBinder != null) {
+                        injectMethod = inputManagerBinder.getClass().getMethod(
+                                "injectInputEvent", MotionEvent.class, int.class
+                        );
+                        Toast.makeText(this, "✅ Shizuku + InputManager OK", Toast.LENGTH_SHORT).show();
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Shizuku init error", e);
+                }
+            } else {
+                Shizuku.requestPermission(1000);
+                Toast.makeText(this, "📢 Đang xin quyền Shizuku...", Toast.LENGTH_SHORT).show();
             }
         } else {
-            Toast.makeText(this, "Shizuku chưa chạy! Mở Shizuku trước.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "❌ Shizuku chưa chạy!", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -73,26 +86,7 @@ public class GestureAssistService extends AccessibilityService {
         screenWidth = metrics.widthPixels;
         screenHeight = metrics.heightPixels;
 
-        // === TỰ XIN QUYỀN SHIZUKU ===
-        requestShizukuPermission();
-
-        if (Shizuku.pingBinder() && Shizuku.isPermissionGranted()) {
-            try {
-                inputManagerBinder = SystemServiceHelper.getSystemService("input");
-                if (inputManagerBinder != null) {
-                    injectMethod = inputManagerBinder.getClass().getMethod(
-                        "injectInputEvent", MotionEvent.class, int.class
-                    );
-                    Toast.makeText(this, "✅ Shizuku + InputManager OK", Toast.LENGTH_SHORT).show();
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Shizuku error", e);
-                Toast.makeText(this, "❌ Lỗi Shizuku: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        } else {
-            Toast.makeText(this, "⚠️ Chưa có quyền Shizuku. Hãy bật trong Shizuku.", Toast.LENGTH_LONG).show();
-        }
-
+        initShizuku();
         createOverlay();
         Toast.makeText(this, "🔥 1440x + Shizuku", Toast.LENGTH_SHORT).show();
         activate();
@@ -106,14 +100,14 @@ public class GestureAssistService extends AccessibilityService {
         overlay.setTouchInterceptor(new TouchInterceptor());
 
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.MATCH_PARENT,
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
-            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
-            WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH |
-            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
-            PixelFormat.TRANSLUCENT
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
+                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH |
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                PixelFormat.TRANSLUCENT
         );
         params.gravity = Gravity.TOP;
         wm.addView(overlay, params);
@@ -127,7 +121,7 @@ public class GestureAssistService extends AccessibilityService {
     }
 
     private void processTouch(MotionEvent rawEvent) {
-        if (!isActive.get() || injectMethod == null) return;
+        if (!isActive.get() || !isShizukuReady || injectMethod == null) return;
 
         int action = rawEvent.getActionMasked();
         float rawX = rawEvent.getRawX();
@@ -167,16 +161,7 @@ public class GestureAssistService extends AccessibilityService {
         if (injectMethod == null) return;
 
         long now = SystemClock.uptimeMillis();
-
-        MotionEvent event = MotionEvent.obtain(
-                now,
-                now,
-                action,
-                x,
-                y,
-                0
-        );
-
+        MotionEvent event = MotionEvent.obtain(now, now, action, x, y, 0);
         event.setSource(InputDevice.SOURCE_TOUCHSCREEN);
 
         try {
