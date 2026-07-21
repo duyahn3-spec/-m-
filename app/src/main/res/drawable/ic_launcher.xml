@@ -1,0 +1,18 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    <!-- Nền đỏ -->
+    <path
+        android:fillColor="#FF0000"
+        android:pathData="M50,5 L90,50 L50,95 L10,50 Z" />
+    <!-- Ngón giữa (màu vàng) -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M45,20 L55,20 L55,70 L45,70 Z" />
+    <!-- Móng tay -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M45,70 Q50,75 55,70 L55,75 Q50,80 45,75 Z" />
+</vector>
