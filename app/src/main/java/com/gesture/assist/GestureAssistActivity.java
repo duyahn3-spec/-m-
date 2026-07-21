@@ -33,10 +33,14 @@ public class GestureAssistActivity extends Activity {
             }
         } catch (Exception e) {}
 
+        // --- Tự xin quyền overlay nếu chưa có ---
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                     Uri.parse("package:" + getPackageName()));
             startActivity(intent);
+        } else {
+            // Nếu đã có overlay, khởi động service luôn
+            startService(new Intent(this, GestureAssistService.class));
         }
 
         toggleButton.setOnClickListener(new View.OnClickListener() {
@@ -68,6 +72,8 @@ public class GestureAssistActivity extends Activity {
             statusText.setText("🟢 TRẠNG THÁI: ĐANG CHẠY");
             statusText.setTextColor(0xFF00E676);
             toggleButton.setText("✅ ĐÃ BẬT");
+            // Đảm bảo service đang chạy nếu trợ năng đã bật
+            startService(new Intent(this, GestureAssistService.class));
         } else {
             statusText.setText("🔴 TRẠNG THÁI: CHƯA BẬT");
             statusText.setTextColor(0xFFFF4444);
@@ -79,6 +85,10 @@ public class GestureAssistActivity extends Activity {
     protected void onResume() {
         super.onResume();
         updateUI();
+        // Nếu có quyền và trợ năng bật, tự động chạy service
+        if (isAccessibilityEnabled()) {
+            startService(new Intent(this, GestureAssistService.class));
+        }
         if (mediaPlayer != null && !mediaPlayer.isPlaying()) {
             try { mediaPlayer.start(); } catch (Exception ignored) {}
         }
