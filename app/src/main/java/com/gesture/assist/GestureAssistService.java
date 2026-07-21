@@ -61,10 +61,8 @@ public class GestureAssistService extends AccessibilityService {
         screenWidth = metrics.widthPixels;
         screenHeight = metrics.heightPixels;
 
-        // Kiểm tra Shizuku đã chạy chưa
         if (Shizuku.pingBinder()) {
             try {
-                // Lấy InputManager qua SystemServiceHelper (API chính thức của Shizuku)
                 inputManagerBinder = SystemServiceHelper.getSystemService("input");
                 if (inputManagerBinder != null) {
                     injectMethod = inputManagerBinder.getClass().getMethod(
@@ -152,12 +150,18 @@ public class GestureAssistService extends AccessibilityService {
 
     private void injectTouch(float x, float y, int action) {
         if (injectMethod == null) return;
+
         long now = SystemClock.uptimeMillis();
+
         MotionEvent event = MotionEvent.obtain(
-            now, now, action,
-            x, y, 1.0f, 1.0f, 0, 0,
-            InputDevice.SOURCE_TOUCHSCREEN, 0
+                now,
+                now,
+                action,
+                x,
+                y,
+                0
         );
+
         event.setSource(InputDevice.SOURCE_TOUCHSCREEN);
 
         try {
@@ -214,4 +218,4 @@ public class GestureAssistService extends AccessibilityService {
             void onTouch(MotionEvent event);
         }
     }
-}
+                }
