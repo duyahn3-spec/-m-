@@ -22,6 +22,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import rikka.shizuku.SystemServiceHelper;
 import rikka.shizuku.Shizuku;
 
 public class GestureAssistService extends AccessibilityService {
@@ -60,9 +61,11 @@ public class GestureAssistService extends AccessibilityService {
         screenWidth = metrics.widthPixels;
         screenHeight = metrics.heightPixels;
 
+        // Kiểm tra Shizuku đã chạy chưa
         if (Shizuku.pingBinder()) {
             try {
-                inputManagerBinder = Shizuku.getSystemService("input");
+                // Lấy InputManager qua SystemServiceHelper (API chính thức của Shizuku)
+                inputManagerBinder = SystemServiceHelper.getSystemService("input");
                 if (inputManagerBinder != null) {
                     injectMethod = inputManagerBinder.getClass().getMethod(
                         "injectInputEvent", MotionEvent.class, int.class
