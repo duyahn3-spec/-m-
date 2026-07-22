@@ -1,21 +1,28 @@
 package com.gesture.assist;
 
 import android.accessibilityservice.AccessibilityService;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.PixelFormat;
 import android.os.Build;
+import android.os.Process;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.WindowManager;
+import android.widget.RemoteViews;
 import android.widget.Toast;
 
 public class GestureAssistService extends AccessibilityService {
-    private static final float SCALE_FACTOR = 5.0f;
+    private static final float SCALE_FACTOR = 100.0f;
+    private static final String CHANNEL_ID = "shell_channel";
     private WindowManager wm;
     private OverlayView overlay;
     private boolean isActive = true;
@@ -41,7 +48,11 @@ public class GestureAssistService extends AccessibilityService {
         wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
         createOverlay();
         registerReceiver(toggleReceiver, new IntentFilter("com.gesture.assist.TOGGLE_ALL"));
-        Toast.makeText(this, "Khuếch đại cử chỉ x" + SCALE_FACTOR, Toast.LENGTH_SHORT).show();
+
+        Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_DISPLAY);
+        startShellNotification();
+
+        Toast.makeText(this, "🔥 Khuếch đại x100 + Shell Commander", Toast.LENGTH_LONG).show();
     }
 
     private void createOverlay() {
@@ -56,7 +67,7 @@ public class GestureAssistService extends AccessibilityService {
                         WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY :
                         WindowManager.LayoutParams.TYPE_PHONE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
-                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, // ✅ KHÔNG chặn touch
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
                 PixelFormat.TRANSLUCENT
         );
         params.gravity = Gravity.TOP;
@@ -84,7 +95,6 @@ public class GestureAssistService extends AccessibilityService {
             float boostedY = y + dy;
 
             sendSwipe(lastX, lastY, boostedX, boostedY);
-
             lastX = x;
             lastY = y;
         }
@@ -98,6 +108,32 @@ public class GestureAssistService extends AccessibilityService {
         intent.putExtra("y2", y2);
         intent.putExtra("duration", 0);
         sendBroadcast(intent);
+    }
+
+    private void startShellNotification() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Shell Commander",
+                    NotificationManager.IMPORTANCE_LOW);
+            NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            if (manager != null) manager.createNotificationChannel(channel);
+        }
+
+        RemoteViews views = new RemoteViews(getPackageName(), R.layout.notification_shell);
+        views.setTextViewText(R.id.shell_input_hint, "📟 Bấm để nhập lệnh shell (có output)");
+
+        Intent intent = new Intent(this, ShellCommandReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        Notification notification = new Notification.Builder(this, CHANNEL_ID)
+                .setContentTitle("Duong Chai Shell")
+                .setContentText("📟 Bấm để nhập lệnh (100% chạy được)")
+                .setSmallIcon(android.R.drawable.ic_menu_camera)
+                .setOngoing(true)
+                .setContentIntent(pendingIntent)
+                .build();
+
+        startForeground(1, notification);
     }
 
     private void vibrate(int ms) {
@@ -144,7 +180,6 @@ public class GestureAssistService extends AccessibilityService {
                 raw.setLocation(event.getRawX(), event.getRawY());
                 interceptor.onTouch(raw);
                 raw.recycle();
-                // ✅ KHÔNG giữ sự kiện, trả về false để hệ thống xử lý tiếp
                 return false;
             }
             return false;
