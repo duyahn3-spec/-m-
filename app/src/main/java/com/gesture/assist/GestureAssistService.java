@@ -15,8 +15,6 @@ import android.view.MotionEvent;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import rikka.shizuku.Shizuku;
-
 public class GestureAssistService extends AccessibilityService {
     private static final float SCALE_FACTOR = 30.0f;
     private WindowManager wm;
@@ -56,10 +54,10 @@ public class GestureAssistService extends AccessibilityService {
 
         // Bind tới ShizukuInjectorService
         Intent intent = new Intent(this, ShizukuInjectorService.class);
-        Shizuku.bindService(intent, connection, Context.BIND_AUTO_CREATE);
+        bindService(intent, connection, Context.BIND_AUTO_CREATE);
 
         createOverlay();
-        Toast.makeText(this, "Kích hoạt khuếch đại x" + SCALE_FACTOR, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Khuếch đại x" + SCALE_FACTOR, Toast.LENGTH_SHORT).show();
         isActive = true;
     }
 
@@ -93,18 +91,10 @@ public class GestureAssistService extends AccessibilityService {
         if (action == MotionEvent.ACTION_DOWN) {
             lastX = rawX;
             lastY = rawY;
-            if (vibrator != null) {
-                if (android.os.Build.VERSION.SDK_INT >= 26) {
-                    vibrator.vibrate(VibrationEffect.createOneShot(4, 20));
-                } else {
-                    vibrator.vibrate(4);
-                }
-            }
+            vibrate();
             try {
-                injectorBinder.injectTouch(rawX, rawY, MotionEvent.ACTION_DOWN);
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
+                injectorBinder.inject(rawX, rawY, MotionEvent.ACTION_DOWN);
+            } catch (RemoteException e) { e.printStackTrace(); }
             return;
         }
 
@@ -115,16 +105,24 @@ public class GestureAssistService extends AccessibilityService {
             float boostedY = Math.max(0, Math.min(screenHeight, rawY + deltaY));
 
             try {
-                injectorBinder.injectTouch(boostedX, boostedY, MotionEvent.ACTION_MOVE);
+                injectorBinder.inject(boostedX, boostedY, MotionEvent.ACTION_MOVE);
                 if (action == MotionEvent.ACTION_UP) {
-                    injectorBinder.injectTouch(boostedX, boostedY, MotionEvent.ACTION_UP);
+                    injectorBinder.inject(boostedX, boostedY, MotionEvent.ACTION_UP);
                 }
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
+            } catch (RemoteException e) { e.printStackTrace(); }
 
             lastX = rawX;
             lastY = rawY;
+        }
+    }
+
+    private void vibrate() {
+        if (vibrator != null) {
+            if (android.os.Build.VERSION.SDK_INT >= 26) {
+                vibrator.vibrate(VibrationEffect.createOneShot(4, 20));
+            } else {
+                vibrator.vibrate(4);
+            }
         }
     }
 
