@@ -1,11 +1,10 @@
 package com.gesture.assist;
 
 import android.app.Service;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.IBinder;
+import android.os.RemoteException;
 import android.os.SystemClock;
 import android.view.InputDevice;
 import android.view.MotionEvent;
@@ -22,15 +21,10 @@ public class ShizukuInjectorService extends Service {
     private Method injectMethod;
     private boolean ready = false;
 
-    private final BroadcastReceiver injectReceiver = new BroadcastReceiver() {
+    private final IInputInjector.Stub binder = new IInputInjector.Stub() {
         @Override
-        public void onReceive(Context context, Intent intent) {
-            if ("com.gesture.assist.INJECT_TOUCH".equals(intent.getAction())) {
-                float x = intent.getFloatExtra("x", 0);
-                float y = intent.getFloatExtra("y", 0);
-                int action = intent.getIntExtra("action", MotionEvent.ACTION_DOWN);
-                injectTouch(x, y, action);
-            }
+        public boolean injectTouch(float x, float y, int action) throws RemoteException {
+            return doInject(x, y, action);
         }
     };
 
@@ -39,7 +33,6 @@ public class ShizukuInjectorService extends Service {
         super.onCreate();
         if (Shizuku.pingBinder()) {
             try {
-                // Lấy InputManager qua Shizuku (cách chuẩn)
                 inputManager = Shizuku.getSystemService(Context.INPUT_SERVICE);
                 if (inputManager != null) {
                     injectMethod = inputManager.getClass().getMethod(
@@ -55,10 +48,9 @@ public class ShizukuInjectorService extends Service {
         } else {
             Toast.makeText(this, "Shizuku chưa chạy!", Toast.LENGTH_LONG).show();
         }
-        registerReceiver(injectReceiver, new IntentFilter("com.gesture.assist.INJECT_TOUCH"));
     }
 
-    private boolean injectTouch(float x, float y, int action) {
+    private boolean doInject(float x, float y, int action) {
         if (!ready || injectMethod == null) return false;
         try {
             long now = SystemClock.uptimeMillis();
@@ -74,11 +66,12 @@ public class ShizukuInjectorService extends Service {
     }
 
     @Override
-    public IBinder onBind(Intent intent) { return null; }
+    public IBinder onBind(Intent intent) {
+        return binder;
+    }
 
     @Override
     public void onDestroy() {
-        unregisterReceiver(injectReceiver);
         super.onDestroy();
     }
 }
