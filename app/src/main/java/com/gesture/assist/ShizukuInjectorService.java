@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
-import android.os.Process;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -33,16 +32,13 @@ public class ShizukuInjectorService extends Service {
     private void executeSwipe(float x1, float y1, float x2, float y2, int duration) {
         if (!ready) return;
 
-        // Chạy với ưu tiên cao nhất
-        Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
-
         new Thread(() -> {
             try {
                 String cmd = String.format("input swipe %d %d %d %d %d",
                         (int) x1, (int) y1, (int) x2, (int) y2, Math.max(1, duration));
                 ProcessBuilder pb = new ProcessBuilder("sh", "-c", cmd);
                 pb.redirectErrorStream(true);
-                Process process = pb.start();
+                java.lang.Process process = pb.start(); // Dùng java.lang.Process
                 process.waitFor();
                 Log.d(TAG, "Swipe executed: " + cmd);
             } catch (Exception e) {
