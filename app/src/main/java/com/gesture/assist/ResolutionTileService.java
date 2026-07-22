@@ -43,10 +43,10 @@ public class ResolutionTileService extends TileService {
 
     private void updateTile(boolean active) {
         if (active) {
-            getQsTile().setState(TileService.STATE_ACTIVE);
+            getQsTile().setState(1); // TileService.STATE_ACTIVE
             getQsTile().setLabel("🥵 Đang Quay Tay Cực Mạnh💦");
         } else {
-            getQsTile().setState(TileService.STATE_INACTIVE);
+            getQsTile().setState(0); // TileService.STATE_INACTIVE
             getQsTile().setLabel("🥶 Đéo Nổi Rồi Toạc BQĐ mất 😵‍💫");
         }
         getQsTile().updateTile();
