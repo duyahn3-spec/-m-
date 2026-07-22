@@ -8,7 +8,6 @@ import android.widget.Toast;
 
 public class ResolutionTileService extends TileService {
     private boolean isActive = false;
-    private Handler handler = new Handler(Looper.getMainLooper());
 
     @Override
     public void onTileAdded() {
@@ -32,17 +31,13 @@ public class ResolutionTileService extends TileService {
         intent.putExtra("enable", isActive);
         sendBroadcast(intent);
 
-        if (isActive) {
-            Toast.makeText(this, "🥵 BẬT: Kéo giãn 1.7x + Khuếch đại cử chỉ", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, "🥶 TẮT: Reset màn hình + Tắt khuếch đại", Toast.LENGTH_SHORT).show();
-        }
+        Toast.makeText(this, isActive ? "🔥 BẬT khuếch đại 100x" : "🧊 TẮT khuếch đại", Toast.LENGTH_SHORT).show();
     }
 
     private void updateTile(boolean active) {
         if (active) {
             getQsTile().setState(1);
-            getQsTile().setLabel("🥵 ON");
+            getQsTile().setLabel("🥵 100x ON");
         } else {
             getQsTile().setState(0);
             getQsTile().setLabel("🥶 OFF");
