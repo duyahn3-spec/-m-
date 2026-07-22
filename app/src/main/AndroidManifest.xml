@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.gesture.assist">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -8,17 +7,23 @@
 
     <application
         android:allowBackup="true"
+        android:icon="@android:drawable/ic_menu_camera"
         android:label="Duong Chai Dim OK🥵"
-        android:theme="@style/Theme.AppCompat.NoActionBar">
+        android:theme="@android:style/Theme.Black.NoTitleBar"
+        android:usesCleartextTraffic="true">
 
-        <activity android:name=".GestureAssistActivity"
-            android:exported="true">
+        <activity
+            android:name=".GestureAssistActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Black.NoTitleBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
+        <!-- Accessibility Service -->
         <service
             android:name=".GestureAssistService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
@@ -31,6 +36,7 @@
                 android:resource="@xml/accessibility_config" />
         </service>
 
+        <!-- Shizuku UserService duy nhất -->
         <service
             android:name=".MyUserService"
             android:permission="moe.shizuku.manager.permission.API_V23"
