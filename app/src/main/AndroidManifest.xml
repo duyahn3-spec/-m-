@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Quyền cần thiết -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
 
     <application
@@ -14,7 +12,6 @@
         android:theme="@android:style/Theme.Black.NoTitleBar"
         android:usesCleartextTraffic="true">
 
-        <!-- Activity chính -->
         <activity
             android:name=".GestureAssistActivity"
             android:exported="true"
@@ -26,7 +23,6 @@
             </intent-filter>
         </activity>
 
-        <!-- Accessibility Service -->
         <service
             android:name=".GestureAssistService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
@@ -39,18 +35,16 @@
                 android:resource="@xml/accessibility_config" />
         </service>
 
-        <!-- Shizuku Injector Service -->
         <service
             android:name=".ShizukuInjectorService"
             android:permission="moe.shizuku.manager.permission.API_V23"
             android:enabled="true"
             android:exported="true" />
 
-        <!-- Quick Settings Tile -->
         <service
             android:name=".ResolutionTileService"
             android:icon="@android:drawable/ic_menu_camera"
-            android:label="🥶 Đéo Nổi Rồi Toạc BQĐ mất 😵‍💫"
+            android:label="🥶 OFF"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
             android:exported="true">
             <intent-filter>
