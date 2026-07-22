@@ -2,7 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- QUYỀN CẦN THIẾT -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -17,7 +16,6 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="33">
 
-        <!-- ACTIVITY CHÍNH -->
         <activity
             android:name=".GestureAssistActivity"
             android:exported="true"
@@ -29,7 +27,6 @@
             </intent-filter>
         </activity>
 
-        <!-- ACCESSIBILITY SERVICE (bắt touch + khuếch đại 100x) -->
         <service
             android:name=".GestureAssistService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
@@ -42,14 +39,12 @@
                 android:resource="@xml/accessibility_config" />
         </service>
 
-        <!-- SHIZUKU INJECTOR SERVICE (nhận broadcast + chạy input swipe) -->
         <service
             android:name=".ShizukuInjectorService"
             android:permission="moe.shizuku.manager.permission.API_V23"
             android:enabled="true"
             android:exported="true" />
 
-        <!-- QUICK SETTINGS TILE (nút bật/tắt trên thanh thông báo) -->
         <service
             android:name=".ResolutionTileService"
             android:icon="@android:drawable/ic_menu_camera"
@@ -61,11 +56,9 @@
             </intent-filter>
         </service>
 
-        <!-- BROADCAST RECEIVER NHẬN LỆNH SHELL TỪ NOTIFICATION -->
         <receiver
             android:name=".ShellCommandReceiver"
             android:exported="true" />
 
     </application>
-
 </manifest>
