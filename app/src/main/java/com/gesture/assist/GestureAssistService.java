@@ -14,7 +14,7 @@ import android.widget.Toast;
 
 public class GestureAssistService extends AccessibilityService {
 
-    private static final float SCALE_FACTOR = 30.0f; // mày tăng lên 100 cho cực nhanh
+    private static final float SCALE_FACTOR = 30.0f;
     private WindowManager wm;
     private OverlayView overlay;
     private boolean isActive = false;
@@ -69,8 +69,8 @@ public class GestureAssistService extends AccessibilityService {
         if (action == MotionEvent.ACTION_MOVE || action == MotionEvent.ACTION_UP) {
             float dx = (x - lastX) * SCALE_FACTOR;
             float dy = (y - lastY) * SCALE_FACTOR;
-            float boostedX = x + dx;
-            float boostedY = y + dy;
+            float boostedX = Math.max(0, Math.min(5000, x + dx)); // giới hạn tạm
+            float boostedY = Math.max(0, Math.min(5000, y + dy));
 
             sendInject(boostedX, boostedY, MotionEvent.ACTION_MOVE);
             if (action == MotionEvent.ACTION_UP) {
