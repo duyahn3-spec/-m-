@@ -41,5 +41,17 @@
             android:enabled="true"
             android:exported="true" />
 
+        <!-- Quick Settings Tile -->
+        <service
+            android:name=".ResolutionTileService"
+            android:icon="@android:drawable/ic_menu_camera"
+            android:label="Kéo giãn 1.7x"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
     </application>
 </manifest>
