@@ -37,7 +37,6 @@ public class ShellActivity extends Activity {
             inputCommand.setText("");
         });
 
-        // Nhận lệnh từ Intent nếu có
         String cmd = getIntent().getStringExtra("command");
         if (cmd != null && !cmd.isEmpty()) {
             inputCommand.setText(cmd);
