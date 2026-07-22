@@ -20,7 +20,6 @@ android {
         }
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     compileOptions {
@@ -32,19 +31,4 @@ android {
 dependencies {
     implementation 'dev.rikka.shizuku:api:13.1.5'
     implementation 'dev.rikka.shizuku:provider:13.1.5'
-    implementation "androidx.appcompat:appcompat:1.7.1"
-
-    // BẮT BUỘC PHẢI ÉP KOTLIN VỀ CÙNG PHIÊN BẢN
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.8.22"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22"
-}
-
-// CHẶN KHÔNG CHO MẤY THẰNG KHÁC KÉO KOTLIN CŨ VÀO
-configurations.all {
-    resolutionStrategy {
-        force "org.jetbrains.kotlin:kotlin-stdlib:1.8.22"
-        force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22"
-        force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22"
-    }
 }
