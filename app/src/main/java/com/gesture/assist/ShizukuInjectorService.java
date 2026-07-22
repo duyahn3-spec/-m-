@@ -1,73 +1,92 @@
 package com.gesture.assist;
 
-import android.app.Service;
+import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.os.IBinder;
-import android.util.Log;
+import android.os.Handler;
+import android.os.Looper;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
-import rikka.shizuku.Shizuku;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
-public class ShizukuInjectorService extends Service {
-    private static final String TAG = "ShizukuInjector";
-    private boolean ready = false;
+public class ShellCommandReceiver extends BroadcastReceiver {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        showShellDialog(context);
+    }
 
-    private final BroadcastReceiver receiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if ("com.gesture.assist.SWIPE".equals(intent.getAction())) {
-                float x1 = intent.getFloatExtra("x1", 0);
-                float y1 = intent.getFloatExtra("y1", 0);
-                float x2 = intent.getFloatExtra("x2", 0);
-                float y2 = intent.getFloatExtra("y2", 0);
-                int duration = intent.getIntExtra("duration", 0);
-                executeSwipe(x1, y1, x2, y2, duration);
+    private void showShellDialog(Context context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("📟 Nhập lệnh shell (qua Shizuku / Runtime)");
+
+        LinearLayout layout = new LinearLayout(context);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(30, 20, 30, 20);
+
+        final EditText input = new EditText(context);
+        input.setHint("vd: settings put system pointer_speed 20");
+        input.setTextSize(16f);
+
+        final TextView outputView = new TextView(context);
+        outputView.setText("▶ Kết quả sẽ hiện ở đây");
+        outputView.setTextSize(14f);
+        outputView.setTextColor(0xFF00FF00);
+        outputView.setPadding(10, 20, 10, 10);
+
+        layout.addView(input);
+        layout.addView(outputView);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("▶ Chạy", (dialog, which) -> {
+            String cmd = input.getText().toString().trim();
+            if (!cmd.isEmpty()) {
+                executeShell(cmd, context, outputView);
+            } else {
+                Toast.makeText(context, "⚠️ Nhập lệnh trước khi chạy!", Toast.LENGTH_SHORT).show();
             }
-        }
-    };
+        });
+        builder.setNegativeButton("❌ Đóng", null);
+        builder.show();
+    }
 
-    private void executeSwipe(float x1, float y1, float x2, float y2, int duration) {
-        if (!ready) return;
+    private void executeShell(String cmd, Context context, TextView outputView) {
+        Toast.makeText(context, "⏳ Đang chạy: " + cmd, Toast.LENGTH_SHORT).show();
+
         new Thread(() -> {
             try {
-                String cmd = String.format("input swipe %d %d %d %d %d",
-                        (int) x1, (int) y1, (int) x2, (int) y2, Math.max(1, duration));
                 Process process = Runtime.getRuntime().exec(new String[]{"sh", "-c", cmd});
                 process.waitFor();
-                Log.d(TAG, "Swipe executed: " + cmd);
+
+                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                StringBuilder output = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    output.append(line).append("\n");
+                }
+                BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                String errorLine;
+                while ((errorLine = errorReader.readLine()) != null) {
+                    output.append("❌ ").append(errorLine).append("\n");
+                }
+
+                final String result = output.length() > 0 ? output.toString() : "✅ Lệnh đã chạy thành công (không có output)";
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    outputView.setText("▶ " + result);
+                    Toast.makeText(context, "✅ Đã chạy xong!", Toast.LENGTH_SHORT).show();
+                });
+
             } catch (Exception e) {
-                Log.e(TAG, "Swipe error", e);
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    outputView.setText("❌ Lỗi: " + e.getMessage());
+                    Toast.makeText(context, "❌ Lỗi: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                });
             }
         }).start();
-    }
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        if (Shizuku.pingBinder()) {
-            if (Shizuku.checkSelfPermission() == 0) {
-                ready = true;
-                Toast.makeText(this, "Shizuku ready", Toast.LENGTH_SHORT).show();
-            } else {
-                Shizuku.requestPermission(1000);
-            }
-        } else {
-            Toast.makeText(this, "Shizuku chưa chạy!", Toast.LENGTH_LONG).show();
-        }
-        registerReceiver(receiver, new IntentFilter("com.gesture.assist.SWIPE"));
-    }
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
-    @Override
-    public void onDestroy() {
-        unregisterReceiver(receiver);
-        super.onDestroy();
     }
 }
