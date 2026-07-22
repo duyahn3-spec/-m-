@@ -1,48 +1,25 @@
 package com.gesture.assist;
 
 import android.accessibilityservice.AccessibilityService;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.PixelFormat;
-import android.os.IBinder;
-import android.os.RemoteException;
+import android.os.Build;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.WindowManager;
 import android.widget.Toast;
-import android.os.Vibrator;
-import android.os.VibrationEffect;
-import android.os.Build;
-
-import rikka.shizuku.Shizuku;
 
 public class GestureAssistService extends AccessibilityService {
-    private static final String TAG = "GestureAssistService";
-    private static final float SCALE = 20f; // Mày tăng lên nếu muốn
 
+    private static final float SCALE_FACTOR = 30.0f; // mày tăng lên 100 cho cực nhanh
     private WindowManager wm;
     private OverlayView overlay;
     private boolean isActive = false;
     private Vibrator vibrator;
     private float lastX, lastY;
-    private IInputInjector injector;
-    private boolean bound = false;
-
-    private final Shizuku.UserServiceConnection connection = new Shizuku.UserServiceConnection() {
-        @Override
-        public void onUserServiceConnected(IBinder binder) {
-            injector = IInputInjector.Stub.asInterface(binder);
-            bound = true;
-            Toast.makeText(GestureAssistService.this, "Đã kết nối UserService", Toast.LENGTH_SHORT).show();
-        }
-
-        @Override
-        public void onUserServiceDisconnected() {
-            injector = null;
-            bound = false;
-        }
-    };
 
     @Override
     public void onCreate() {
@@ -50,19 +27,13 @@ public class GestureAssistService extends AccessibilityService {
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
 
-        // Bind UserService
-        Shizuku.UserServiceArgs args = new Shizuku.UserServiceArgs(
-                new ComponentName(this, MyUserService.class))
-                .daemon(false)
-                .process(":my_user_service")
-                .version(1);
-        Shizuku.bindUserService(args, connection);
-
         createOverlay();
         isActive = true;
+        Toast.makeText(this, "Khuếch đại x" + SCALE_FACTOR, Toast.LENGTH_SHORT).show();
     }
 
     private void createOverlay() {
+        if (overlay != null) return;
         overlay = new OverlayView(this);
         overlay.setTouchInterceptor(this::processTouch);
 
@@ -76,67 +47,73 @@ public class GestureAssistService extends AccessibilityService {
                         WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
                 PixelFormat.TRANSLUCENT
         );
+        params.gravity = Gravity.TOP;
         wm.addView(overlay, params);
     }
 
     private void processTouch(MotionEvent event) {
-        if (!isActive || !bound || injector == null) return;
+        if (!isActive) return;
 
+        int action = event.getActionMasked();
         float x = event.getRawX();
         float y = event.getRawY();
 
-        if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+        if (action == MotionEvent.ACTION_DOWN) {
             lastX = x;
             lastY = y;
-            vibrate();
-            try {
-                injector.injectEvent(x, y, MotionEvent.ACTION_DOWN, InputDevice.SOURCE_TOUCHSCREEN);
-            } catch (RemoteException ignored) {}
+            vibrate(4);
+            sendInject(x, y, MotionEvent.ACTION_DOWN);
             return;
         }
 
-        if (event.getActionMasked() == MotionEvent.ACTION_MOVE ||
-            event.getActionMasked() == MotionEvent.ACTION_UP) {
+        if (action == MotionEvent.ACTION_MOVE || action == MotionEvent.ACTION_UP) {
+            float dx = (x - lastX) * SCALE_FACTOR;
+            float dy = (y - lastY) * SCALE_FACTOR;
+            float boostedX = x + dx;
+            float boostedY = y + dy;
 
-            float dx = (x - lastX) * SCALE;
-            float dy = (y - lastY) * SCALE;
-            float boostedX = Math.max(0, Math.min(getResources().getDisplayMetrics().widthPixels, x + dx));
-            float boostedY = Math.max(0, Math.min(getResources().getDisplayMetrics().heightPixels, y + dy));
-
-            try {
-                injector.injectEvent(boostedX, boostedY, MotionEvent.ACTION_MOVE, InputDevice.SOURCE_TOUCHSCREEN);
-                if (event.getActionMasked() == MotionEvent.ACTION_UP) {
-                    injector.injectEvent(boostedX, boostedY, MotionEvent.ACTION_UP, InputDevice.SOURCE_TOUCHSCREEN);
-                }
-            } catch (RemoteException ignored) {}
+            sendInject(boostedX, boostedY, MotionEvent.ACTION_MOVE);
+            if (action == MotionEvent.ACTION_UP) {
+                sendInject(boostedX, boostedY, MotionEvent.ACTION_UP);
+            }
 
             lastX = x;
             lastY = y;
         }
     }
 
-    private void vibrate() {
-        if (vibrator != null) {
-            if (Build.VERSION.SDK_INT >= 26) {
-                vibrator.vibrate(VibrationEffect.createOneShot(4, 20));
-            } else {
-                vibrator.vibrate(4);
-            }
+    private void sendInject(float x, float y, int action) {
+        Intent intent = new Intent("com.gesture.assist.INJECT");
+        intent.putExtra("x", x);
+        intent.putExtra("y", y);
+        intent.putExtra("action", action);
+        sendBroadcast(intent);
+    }
+
+    private void vibrate(int ms) {
+        if (vibrator == null) return;
+        if (Build.VERSION.SDK_INT >= 26) {
+            vibrator.vibrate(VibrationEffect.createOneShot(ms, 20));
+        } else {
+            vibrator.vibrate(ms);
         }
     }
 
     @Override
     public void onDestroy() {
         isActive = false;
-        if (overlay != null) wm.removeView(overlay);
-        if (bound) {
-            Shizuku.unbindUserService(connection, true);
-            bound = false;
+        if (overlay != null) {
+            try { wm.removeView(overlay); } catch (Exception ignored) {}
         }
         super.onDestroy();
     }
 
-    // OverlayView inner class (giữ nguyên)
+    @Override
+    public void onAccessibilityEvent(android.view.accessibility.AccessibilityEvent event) {}
+
+    @Override
+    public void onInterrupt() {}
+
     private static class OverlayView extends android.view.View {
         private TouchInterceptor interceptor;
 
@@ -164,10 +141,4 @@ public class GestureAssistService extends AccessibilityService {
             void onTouch(MotionEvent event);
         }
     }
-
-    @Override
-    public void onAccessibilityEvent(android.view.accessibility.AccessibilityEvent event) {}
-
-    @Override
-    public void onInterrupt() {}
 }
