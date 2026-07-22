@@ -2,28 +2,19 @@ package com.gesture.assist;
 
 import android.accessibilityservice.AccessibilityService;
 import android.content.Context;
-import android.content.pm.PackageManager;
+import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.os.Build;
-import android.os.IBinder;
-import android.os.SystemClock;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
-import android.util.Log;
 import android.view.Gravity;
-import android.view.InputDevice;
 import android.view.MotionEvent;
 import android.view.WindowManager;
 import android.widget.Toast;
-import java.lang.reflect.Method;
 import java.security.SecureRandom;
-import rikka.shizuku.Shizuku;
 
 public class GestureAssistService extends AccessibilityService {
-
-    private static final String TAG = "GestureService";
-    private static final float SCALE_FACTOR = 20.0f; // Mày muốn 3-4 thì set 30-40
-
+    private static final float SCALE_FACTOR = 30.0f;
     private WindowManager wm;
     private OverlayView overlay;
     private boolean isActive = false;
@@ -31,39 +22,6 @@ public class GestureAssistService extends AccessibilityService {
     private float screenWidth, screenHeight;
     private float lastX, lastY;
     private SecureRandom random;
-
-    private IBinder inputManagerBinder;
-    private Method injectMethod;
-    private boolean isShizukuReady = false;
-
-    private void initShizuku() {
-        if (Shizuku.pingBinder()) {
-            if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
-                isShizukuReady = true;
-                try {
-                    // Lấy service "input" qua Shizuku
-                    inputManagerBinder = Shizuku.getSystemService("input");
-                    if (inputManagerBinder != null) {
-                        // Lấy method injectInputEvent từ InputManager
-                        injectMethod = inputManagerBinder.getClass().getMethod(
-                                "injectInputEvent", MotionEvent.class, int.class
-                        );
-                        Toast.makeText(this, "Shizuku + Input OK", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(this, "Không lấy được InputManager", Toast.LENGTH_SHORT).show();
-                    }
-                } catch (Exception e) {
-                    Log.e(TAG, "Shizuku init error", e);
-                    Toast.makeText(this, "Lỗi Shizuku: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                }
-            } else {
-                Shizuku.requestPermission(1000);
-                Toast.makeText(this, "Đang xin quyền Shizuku...", Toast.LENGTH_SHORT).show();
-            }
-        } else {
-            Toast.makeText(this, "Shizuku chưa chạy! Hãy khởi động Shizuku trước.", Toast.LENGTH_LONG).show();
-        }
-    }
 
     @Override
     public void onCreate() {
@@ -77,9 +35,8 @@ public class GestureAssistService extends AccessibilityService {
         screenWidth = metrics.widthPixels;
         screenHeight = metrics.heightPixels;
 
-        initShizuku();
         createOverlay();
-        Toast.makeText(this, "Kích hoạt Duong Chai Dim OK", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Duong Chai Dim OK", Toast.LENGTH_SHORT).show();
         isActive = true;
     }
 
@@ -104,7 +61,7 @@ public class GestureAssistService extends AccessibilityService {
     }
 
     private void processTouch(MotionEvent rawEvent) {
-        if (!isActive || !isShizukuReady || injectMethod == null) return;
+        if (!isActive) return;
 
         int action = rawEvent.getActionMasked();
         float rawX = rawEvent.getRawX();
@@ -120,6 +77,8 @@ public class GestureAssistService extends AccessibilityService {
                     vibrator.vibrate(4);
                 }
             }
+            // Gửi DOWN
+            sendInject(rawX, rawY, MotionEvent.ACTION_DOWN);
             return;
         }
 
@@ -129,30 +88,23 @@ public class GestureAssistService extends AccessibilityService {
             float boostedX = Math.max(0, Math.min(screenWidth, rawX + deltaX));
             float boostedY = Math.max(0, Math.min(screenHeight, rawY + deltaY));
 
-            // Inject sự kiện DOWN tại vị trí raw
-            injectTouch(rawX, rawY, MotionEvent.ACTION_DOWN);
-            // Inject sự kiện MOVE với vị trí đã nhân
-            injectTouch(boostedX, boostedY, MotionEvent.ACTION_MOVE);
-            // Inject sự kiện UP tại vị trí nhân (hoặc giữ nguyên)
-            injectTouch(boostedX, boostedY, MotionEvent.ACTION_UP);
+            // Gửi MOVE và UP đến UserService qua Broadcast
+            sendInject(boostedX, boostedY, MotionEvent.ACTION_MOVE);
+            if (action == MotionEvent.ACTION_UP) {
+                sendInject(boostedX, boostedY, MotionEvent.ACTION_UP);
+            }
 
             lastX = rawX;
             lastY = rawY;
         }
     }
 
-    private void injectTouch(float x, float y, int action) {
-        if (injectMethod == null) return;
-        long now = SystemClock.uptimeMillis();
-        MotionEvent event = MotionEvent.obtain(now, now, action, x, y, 0);
-        event.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-        try {
-            injectMethod.invoke(inputManagerBinder, event, 0);
-        } catch (Exception e) {
-            Log.e(TAG, "Inject fail", e);
-        } finally {
-            event.recycle();
-        }
+    private void sendInject(float x, float y, int action) {
+        Intent intent = new Intent("com.gesture.assist.INJECT_TOUCH");
+        intent.putExtra("x", x);
+        intent.putExtra("y", y);
+        intent.putExtra("action", action);
+        sendBroadcast(intent);
     }
 
     @Override
