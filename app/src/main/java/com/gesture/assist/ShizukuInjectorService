@@ -18,7 +18,7 @@ import rikka.shizuku.Shizuku;
 
 public class ShizukuInjectorService extends Service {
     private static final String TAG = "ShizukuInjector";
-    private IBinder inputManagerBinder;
+    private Object inputManager;
     private Method injectMethod;
     private boolean ready = false;
 
@@ -39,9 +39,10 @@ public class ShizukuInjectorService extends Service {
         super.onCreate();
         if (Shizuku.pingBinder()) {
             try {
-                inputManagerBinder = Shizuku.getSystemService(Context.INPUT_SERVICE);
-                if (inputManagerBinder != null) {
-                    injectMethod = inputManagerBinder.getClass().getMethod(
+                // Lấy InputManager qua Shizuku (cách chuẩn)
+                inputManager = Shizuku.getSystemService(Context.INPUT_SERVICE);
+                if (inputManager != null) {
+                    injectMethod = inputManager.getClass().getMethod(
                             "injectInputEvent", MotionEvent.class, int.class
                     );
                     ready = true;
@@ -49,8 +50,10 @@ public class ShizukuInjectorService extends Service {
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Init fail", e);
-                Toast.makeText(this, "Lỗi khởi tạo Injector", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Lỗi khởi tạo: " + e.getMessage(), Toast.LENGTH_LONG).show();
             }
+        } else {
+            Toast.makeText(this, "Shizuku chưa chạy!", Toast.LENGTH_LONG).show();
         }
         registerReceiver(injectReceiver, new IntentFilter("com.gesture.assist.INJECT_TOUCH"));
     }
@@ -61,7 +64,7 @@ public class ShizukuInjectorService extends Service {
             long now = SystemClock.uptimeMillis();
             MotionEvent event = MotionEvent.obtain(now, now, action, x, y, 0);
             event.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-            injectMethod.invoke(inputManagerBinder, event, 0);
+            injectMethod.invoke(inputManager, event, 0);
             event.recycle();
             return true;
         } catch (Exception e) {
