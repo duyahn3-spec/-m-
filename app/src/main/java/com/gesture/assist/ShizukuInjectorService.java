@@ -18,9 +18,7 @@ public class ShizukuInjectorService extends Service {
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-
-            if ("com.gesture.assist.SWIPE".equals(action)) {
+            if ("com.gesture.assist.SWIPE".equals(intent.getAction())) {
                 float x1 = intent.getFloatExtra("x1", 0);
                 float y1 = intent.getFloatExtra("y1", 0);
                 float x2 = intent.getFloatExtra("x2", 0);
@@ -32,15 +30,19 @@ public class ShizukuInjectorService extends Service {
     };
 
     private void executeSwipe(float x1, float y1, float x2, float y2, int duration) {
-        if (!ready) return;
+        if (!ready) {
+            Log.e(TAG, "Shizuku not ready");
+            return;
+        }
 
         new Thread(() -> {
             try {
                 String cmd = String.format("input swipe %d %d %d %d %d",
                         (int) x1, (int) y1, (int) x2, (int) y2, duration);
-                // Dùng Shizuku.newProcess() nhanh hơn Runtime.exec()
-                Shizuku.newProcess(new String[]{"sh", "-c", cmd}, null, null).waitFor();
-                Log.d(TAG, "Swipe: " + cmd);
+                // Dùng Runtime.exec() - KHÔNG dùng Shizuku.newProcess()
+                Process process = Runtime.getRuntime().exec(new String[]{"sh", "-c", cmd});
+                process.waitFor();
+                Log.d(TAG, "Swipe executed: " + cmd);
             } catch (Exception e) {
                 Log.e(TAG, "Swipe error", e);
             }
@@ -54,10 +56,13 @@ public class ShizukuInjectorService extends Service {
         if (Shizuku.pingBinder()) {
             if (Shizuku.checkSelfPermission() == 0) {
                 ready = true;
-                Toast.makeText(this, "Shizuku ready (fast mode)", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Shizuku ready", Toast.LENGTH_SHORT).show();
             } else {
                 Shizuku.requestPermission(1000);
+                Toast.makeText(this, "Đang xin quyền Shizuku...", Toast.LENGTH_SHORT).show();
             }
+        } else {
+            Toast.makeText(this, "Shizuku chưa chạy!", Toast.LENGTH_LONG).show();
         }
 
         registerReceiver(receiver, new IntentFilter("com.gesture.assist.SWIPE"));
