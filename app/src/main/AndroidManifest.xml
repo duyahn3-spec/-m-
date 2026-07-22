@@ -5,15 +5,19 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:allowBackup="true"
+        android:icon="@android:drawable/ic_menu_camera"
         android:label="Duong Chai Dim OK🥵"
-        android:theme="@android:style/Theme.Black.NoTitleBar">
+        android:theme="@android:style/Theme.Black.NoTitleBar"
+        android:usesCleartextTraffic="true">
 
         <activity
             android:name=".GestureAssistActivity"
             android:exported="true"
+            android:screenOrientation="portrait"
             android:theme="@android:style/Theme.Black.NoTitleBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -37,7 +41,7 @@
             android:name=".ShizukuInjectorService"
             android:permission="moe.shizuku.manager.permission.API_V23"
             android:enabled="true"
-            android:exported="true"/>
+            android:exported="true" />
 
     </application>
 </manifest>
