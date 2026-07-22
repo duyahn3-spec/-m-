@@ -24,7 +24,6 @@
             </intent-filter>
         </activity>
 
-        <!-- Service trợ năng -->
         <service
             android:name=".GestureAssistService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
@@ -37,9 +36,8 @@
                 android:resource="@xml/accessibility_config" />
         </service>
 
-        <!-- UserService chạy qua Shizuku -->
         <service
-            android:name=".InputInjectorService"
+            android:name=".ShizukuInjectorService"
             android:permission="moe.shizuku.manager.permission.API_V23"
             android:exported="true" />
 
