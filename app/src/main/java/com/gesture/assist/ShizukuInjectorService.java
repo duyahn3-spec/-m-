@@ -31,14 +31,11 @@ public class ShizukuInjectorService extends Service {
 
     private void executeSwipe(float x1, float y1, float x2, float y2, int duration) {
         if (!ready) return;
-
         new Thread(() -> {
             try {
                 String cmd = String.format("input swipe %d %d %d %d %d",
                         (int) x1, (int) y1, (int) x2, (int) y2, Math.max(1, duration));
-                ProcessBuilder pb = new ProcessBuilder("sh", "-c", cmd);
-                pb.redirectErrorStream(true);
-                java.lang.Process process = pb.start(); // Dùng java.lang.Process
+                Process process = Runtime.getRuntime().exec(new String[]{"sh", "-c", cmd});
                 process.waitFor();
                 Log.d(TAG, "Swipe executed: " + cmd);
             } catch (Exception e) {
@@ -50,18 +47,16 @@ public class ShizukuInjectorService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-
         if (Shizuku.pingBinder()) {
             if (Shizuku.checkSelfPermission() == 0) {
                 ready = true;
-                Toast.makeText(this, "Shizuku ready (Ultra mode)", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Shizuku ready", Toast.LENGTH_SHORT).show();
             } else {
                 Shizuku.requestPermission(1000);
             }
         } else {
             Toast.makeText(this, "Shizuku chưa chạy!", Toast.LENGTH_LONG).show();
         }
-
         registerReceiver(receiver, new IntentFilter("com.gesture.assist.SWIPE"));
     }
 
