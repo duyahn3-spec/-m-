@@ -39,10 +39,9 @@ public class ShizukuInjectorService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        // Kiểm tra Shizuku đã chạy và có quyền chưa
         if (Shizuku.pingBinder()) {
             try {
-                // Lấy InputManager hệ thống qua reflection
+                // Lấy InputManager bằng reflection (API ẩn)
                 Class<?> inputManagerClass = Class.forName("android.hardware.input.InputManager");
                 Method getInstance = inputManagerClass.getMethod("getInstance");
                 inputManager = getInstance.invoke(null);
@@ -89,4 +88,4 @@ public class ShizukuInjectorService extends Service {
         unregisterReceiver(receiver);
         super.onDestroy();
     }
-            }
+}
