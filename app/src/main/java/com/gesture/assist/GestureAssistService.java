@@ -13,7 +13,6 @@ import android.content.IntentFilter;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.os.Build;
-import android.os.IBinder;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.view.Gravity;
@@ -153,15 +152,12 @@ public class GestureAssistService extends AccessibilityService {
     }
 
     @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
-    @Override
     public void onAccessibilityEvent(android.view.accessibility.AccessibilityEvent event) {}
 
     @Override
     public void onInterrupt() {}
+
+    // KHÔNG override onBind() - AccessibilityService đã có sẵn
 
     private static class OverlayView extends android.view.View {
         private TouchInterceptor interceptor;
