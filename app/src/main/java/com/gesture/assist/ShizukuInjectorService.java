@@ -28,7 +28,7 @@ public class ShizukuInjectorService extends Service {
                 } else if ("disable".equals(mode)) {
                     executeDisable();
                 } else {
-                    executeEnable(); // fallback
+                    executeEnable();
                 }
             }
         }
@@ -36,7 +36,7 @@ public class ShizukuInjectorService extends Service {
 
     private void executeEnable() {
         if (!ready) {
-            Toast.makeText(this, "Shizuku chưa sẵn sàng", Toast.LENGTH_SHORT).show();
+            handler.post(() -> Toast.makeText(this, "Shizuku chưa sẵn sàng", Toast.LENGTH_SHORT).show());
             return;
         }
         new Thread(() -> {
@@ -53,9 +53,7 @@ public class ShizukuInjectorService extends Service {
                 runCommand("cmd activity kill-all");
                 runCommand("cmd power set-fixed-performance-mode-enabled true");
 
-                // Kéo giãn 1.7x
-                String sizeCmd = "wm size";
-                String sizeOutput = runCommandAndGetOutput(sizeCmd);
+                String sizeOutput = runCommandAndGetOutput("wm size");
                 if (sizeOutput != null && sizeOutput.contains("x")) {
                     String[] parts = sizeOutput.trim().split("x");
                     if (parts.length == 2) {
@@ -67,11 +65,10 @@ public class ShizukuInjectorService extends Service {
                     }
                 }
 
-                // Gửi notification
                 String notifyCmd = "cmd notification post -t '🚀 ' 'CÁI ĐÙ CÂU LÁP BỰ BÁ SÀN CỦA MÀY ĐÂY!' 'AIMLOCK 🔥💥 | ĐỘ NHẠY X2 TRIỆU TỐC ĐỘ KÉO PHÁT LÊN TRỜI💯| CÀI VÀO MÁY LAG NHƯ LON BẮN ĐÉO CÓ TRÌNH SỦA CON CAK | X1000000000 TỶ ĐỘ SUPPER MAX ĐẸP TRAI CỦA HẢI DƯƠNG CÒN LẠI TỤI BÂY ĐÉO CÓ CẢNH| TAO BÁ SÀN NHẤT ĐÈO MẸ BỌN NGUUUU LÒN ÓC CẶT TUỔI LỒN NẰM XUỐNG MẤY CON CHÓ 😏| BỌN MÀY LÁP NHƯ QUẢ ỚT 🌶️ CÀI VÀO NHƯ KHÔNG CHỈ DÀNH CHO TAO LÁP BỰ MỚI CÓ TÁC DỤNG😎| Hai Dương 🗿!'";
                 runCommand(notifyCmd);
 
-                handler.post(() -> Toast.makeText(ShizukuInjectorService.this, "✅ 1.7x ENABLED", Toast.LENGTH_SHORT).show());
+                handler.post(() -> Toast.makeText(ShizukuInjectorService.this, "🥵 Đã kéo giãn 1.7x", Toast.LENGTH_SHORT).show());
 
             } catch (Exception e) {
                 Log.e(TAG, "Error", e);
@@ -85,7 +82,7 @@ public class ShizukuInjectorService extends Service {
         new Thread(() -> {
             try {
                 runCommand("wm size reset");
-                handler.post(() -> Toast.makeText(ShizukuInjectorService.this, "🔁 Reset resolution", Toast.LENGTH_SHORT).show());
+                handler.post(() -> Toast.makeText(ShizukuInjectorService.this, "🥶 Đã reset resolution", Toast.LENGTH_SHORT).show());
             } catch (Exception e) {
                 Log.e(TAG, "Reset error", e);
             }
@@ -118,12 +115,19 @@ public class ShizukuInjectorService extends Service {
     public void onCreate() {
         super.onCreate();
         handler = new Handler(Looper.getMainLooper());
-        if (Shizuku.pingBinder() && Shizuku.checkSelfPermission() == 0) {
-            ready = true;
-            Toast.makeText(this, "Shizuku ready", Toast.LENGTH_SHORT).show();
+
+        if (Shizuku.pingBinder()) {
+            if (Shizuku.checkSelfPermission() == 0) {
+                ready = true;
+                Toast.makeText(this, "Shizuku ready", Toast.LENGTH_SHORT).show();
+            } else {
+                Shizuku.requestPermission(1000);
+                Toast.makeText(this, "Đang xin quyền Shizuku...", Toast.LENGTH_SHORT).show();
+            }
         } else {
-            Shizuku.requestPermission(1000);
+            Toast.makeText(this, "Shizuku chưa chạy!", Toast.LENGTH_LONG).show();
         }
+
         registerReceiver(receiver, new IntentFilter("com.gesture.assist.EXECUTE"));
     }
 
