@@ -1,16 +1,10 @@
 package com.gesture.assist;
 
 import android.accessibilityservice.AccessibilityService;
-import android.accessibilityservice.GestureDescription;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.VibrationEffect;
@@ -21,13 +15,14 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 public class GestureAssistService extends AccessibilityService {
-    private static final float SCALE_FACTOR = 30.0f;
-    private static final String CHANNEL_ID = "gesture_assist_channel";
+    private static final float SCALE_FACTOR = 5.0f;
+    private static final float MIN_DELTA = 2.0f; // Chỉ gửi khi vuốt > 2px
     private WindowManager wm;
     private OverlayView overlay;
     private boolean isActive = true;
     private Vibrator vibrator;
     private float lastX, lastY;
+    private boolean isTouching = false;
 
     private final BroadcastReceiver toggleReceiver = new BroadcastReceiver() {
         @Override
@@ -35,7 +30,7 @@ public class GestureAssistService extends AccessibilityService {
             if ("com.gesture.assist.TOGGLE_ALL".equals(intent.getAction())) {
                 isActive = intent.getBooleanExtra("enable", true);
                 Toast.makeText(GestureAssistService.this,
-                        isActive ? "🔥 Khuếch đại cử chỉ: ON" : "🧊 Khuếch đại cử chỉ: OFF",
+                        isActive ? "🔥 Khuếch đại x" + SCALE_FACTOR : "🧊 Đã tắt",
                         Toast.LENGTH_SHORT).show();
             }
         }
@@ -47,38 +42,8 @@ public class GestureAssistService extends AccessibilityService {
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
         createOverlay();
-
-        // Chạy foreground service để tránh bị kill
-        startForegroundService();
-
         registerReceiver(toggleReceiver, new IntentFilter("com.gesture.assist.TOGGLE_ALL"));
         Toast.makeText(this, "Khuếch đại cử chỉ x" + SCALE_FACTOR, Toast.LENGTH_SHORT).show();
-    }
-
-    private void startForegroundService() {
-        String channelName = "Duong Chai Dim OK";
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, channelName,
-                    NotificationManager.IMPORTANCE_LOW);
-            NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-            if (manager != null) {
-                manager.createNotificationChannel(channel);
-            }
-        }
-
-        Intent intent = new Intent(this, GestureAssistActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-
-        Notification notification = new Notification.Builder(this, CHANNEL_ID)
-                .setContentTitle("Duong Chai Dim OK")
-                .setContentText("🔥 Khuếch đại cử chỉ đang chạy")
-                .setSmallIcon(android.R.drawable.ic_menu_camera)
-                .setContentIntent(pendingIntent)
-                .setOngoing(true)
-                .build();
-
-        startForeground(1, notification);
     }
 
     private void createOverlay() {
@@ -110,26 +75,43 @@ public class GestureAssistService extends AccessibilityService {
         if (action == MotionEvent.ACTION_DOWN) {
             lastX = x;
             lastY = y;
+            isTouching = true;
             vibrate(4);
             return;
         }
 
-        if (action == MotionEvent.ACTION_MOVE || action == MotionEvent.ACTION_UP) {
-            float dx = (x - lastX) * SCALE_FACTOR;
-            float dy = (y - lastY) * SCALE_FACTOR;
-            float boostedX = x + dx;
-            float boostedY = y + dy;
+        if (action == MotionEvent.ACTION_MOVE && isTouching) {
+            float dx = x - lastX;
+            float dy = y - lastY;
 
-            Path path = new Path();
-            path.moveTo(x, y);
-            path.lineTo(boostedX, boostedY);
-            GestureDescription.Builder builder = new GestureDescription.Builder();
-            builder.addStroke(new GestureDescription.StrokeDescription(path, 0, 1));
-            dispatchGesture(builder.build(), null, null);
+            // Bỏ qua nếu di chuyển quá nhỏ
+            if (Math.abs(dx) < MIN_DELTA && Math.abs(dy) < MIN_DELTA) {
+                return;
+            }
+
+            float boostedX = x + dx * SCALE_FACTOR;
+            float boostedY = y + dy * SCALE_FACTOR;
+
+            // Gửi trực tiếp, không delay
+            sendSwipe(lastX, lastY, boostedX, boostedY);
 
             lastX = x;
             lastY = y;
         }
+
+        if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+            isTouching = false;
+        }
+    }
+
+    private void sendSwipe(float x1, float y1, float x2, float y2) {
+        Intent intent = new Intent("com.gesture.assist.SWIPE");
+        intent.putExtra("x1", x1);
+        intent.putExtra("y1", y1);
+        intent.putExtra("x2", x2);
+        intent.putExtra("y2", y2);
+        intent.putExtra("duration", 1); // Giảm xuống 1ms
+        sendBroadcast(intent);
     }
 
     private void vibrate(int ms) {
@@ -156,8 +138,6 @@ public class GestureAssistService extends AccessibilityService {
 
     @Override
     public void onInterrupt() {}
-
-    // KHÔNG override onBind() - AccessibilityService đã có sẵn
 
     private static class OverlayView extends android.view.View {
         private TouchInterceptor interceptor;
