@@ -2,7 +2,10 @@ package com.gesture.assist;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.GestureDescription;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.os.Build;
@@ -17,9 +20,21 @@ public class GestureAssistService extends AccessibilityService {
     private static final float SCALE_FACTOR = 30.0f;
     private WindowManager wm;
     private OverlayView overlay;
-    private boolean isActive = false;
+    private boolean isActive = true;
     private Vibrator vibrator;
     private float lastX, lastY;
+
+    private final BroadcastReceiver toggleReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if ("com.gesture.assist.TOGGLE_ALL".equals(intent.getAction())) {
+                isActive = intent.getBooleanExtra("enable", true);
+                Toast.makeText(GestureAssistService.this,
+                        isActive ? "🔥 Khuếch đại cử chỉ: ON" : "🧊 Khuếch đại cử chỉ: OFF",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+    };
 
     @Override
     public void onCreate() {
@@ -27,8 +42,8 @@ public class GestureAssistService extends AccessibilityService {
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
         createOverlay();
-        isActive = true;
-        Toast.makeText(this, "Khuếch đại x" + SCALE_FACTOR, Toast.LENGTH_SHORT).show();
+        registerReceiver(toggleReceiver, new IntentFilter("com.gesture.assist.TOGGLE_ALL"));
+        Toast.makeText(this, "Khuếch đại cử chỉ x" + SCALE_FACTOR, Toast.LENGTH_SHORT).show();
     }
 
     private void createOverlay() {
@@ -94,6 +109,7 @@ public class GestureAssistService extends AccessibilityService {
     @Override
     public void onDestroy() {
         isActive = false;
+        unregisterReceiver(toggleReceiver);
         if (overlay != null) {
             try { wm.removeView(overlay); } catch (Exception ignored) {}
         }
