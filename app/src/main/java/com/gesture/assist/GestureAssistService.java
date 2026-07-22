@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.PixelFormat;
 import android.os.Build;
-import android.os.Process;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.view.Gravity;
@@ -16,7 +15,7 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 public class GestureAssistService extends AccessibilityService {
-    private static final float SCALE_FACTOR = 8.0f; // 1cm = 8cm
+    private static final float SCALE_FACTOR = 5.0f;
     private WindowManager wm;
     private OverlayView overlay;
     private boolean isActive = true;
@@ -43,9 +42,6 @@ public class GestureAssistService extends AccessibilityService {
         createOverlay();
         registerReceiver(toggleReceiver, new IntentFilter("com.gesture.assist.TOGGLE_ALL"));
         Toast.makeText(this, "Khuếch đại cử chỉ x" + SCALE_FACTOR, Toast.LENGTH_SHORT).show();
-
-        // Tăng độ ưu tiên của process để giảm trễ
-        Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_DISPLAY);
     }
 
     private void createOverlay() {
@@ -60,8 +56,7 @@ public class GestureAssistService extends AccessibilityService {
                         WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY :
                         WindowManager.LayoutParams.TYPE_PHONE,
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
-                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
-                        WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH,
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE, // ✅ KHÔNG chặn touch
                 PixelFormat.TRANSLUCENT
         );
         params.gravity = Gravity.TOP;
@@ -88,7 +83,6 @@ public class GestureAssistService extends AccessibilityService {
             float boostedX = x + dx;
             float boostedY = y + dy;
 
-            // KHÔNG lọc MIN_DELTA để phản hồi ngay lập tức
             sendSwipe(lastX, lastY, boostedX, boostedY);
 
             lastX = x;
@@ -102,7 +96,7 @@ public class GestureAssistService extends AccessibilityService {
         intent.putExtra("y1", y1);
         intent.putExtra("x2", x2);
         intent.putExtra("y2", y2);
-        intent.putExtra("duration", 0); // 0ms = tối đa tốc độ
+        intent.putExtra("duration", 0);
         sendBroadcast(intent);
     }
 
@@ -150,6 +144,7 @@ public class GestureAssistService extends AccessibilityService {
                 raw.setLocation(event.getRawX(), event.getRawY());
                 interceptor.onTouch(raw);
                 raw.recycle();
+                // ✅ KHÔNG giữ sự kiện, trả về false để hệ thống xử lý tiếp
                 return false;
             }
             return false;
