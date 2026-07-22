@@ -8,16 +8,11 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@android:drawable/ic_menu_camera"
-        android:label="Duong Chai Dim OK🗿"
-        android:theme="@android:style/Theme.Black.NoTitleBar"
-        android:usesCleartextTraffic="true">
+        android:label="Duong Chai Dim OK"
+        android:theme="@style/Theme.AppCompat.NoActionBar">
 
-        <activity
-            android:name=".GestureAssistActivity"
-            android:exported="true"
-            android:screenOrientation="portrait"
-            android:theme="@android:style/Theme.Black.NoTitleBar">
+        <activity android:name=".GestureAssistActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -37,9 +32,14 @@
         </service>
 
         <service
-            android:name=".ShizukuInjectorService"
+            android:name=".MyUserService"
             android:permission="moe.shizuku.manager.permission.API_V23"
-            android:exported="true" />
+            android:enabled="true"
+            android:exported="true">
+            <meta-data
+                android:name="moe.shizuku.manager.USER_SERVICE"
+                android:value="true" />
+        </service>
 
     </application>
 </manifest>
