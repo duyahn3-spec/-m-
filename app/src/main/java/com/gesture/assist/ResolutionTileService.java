@@ -17,33 +17,37 @@ public class ResolutionTileService extends TileService {
     }
 
     @Override
+    public void onStartListening() {
+        super.onStartListening();
+        updateTile(isActive);
+    }
+
+    @Override
     public void onClick() {
         super.onClick();
         isActive = !isActive;
         updateTile(isActive);
 
         if (isActive) {
-            // Bật kéo giãn 1.7x và tối ưu
             Intent intent = new Intent("com.gesture.assist.EXECUTE");
             intent.putExtra("mode", "enable");
             sendBroadcast(intent);
-            Toast.makeText(this, "✅ Đã kéo giãn 1.7x & tối ưu CPU", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "🥵 Đang Quay Tay Cực Mạnh 💦", Toast.LENGTH_SHORT).show();
         } else {
-            // Reset độ phân giải về mặc định
             Intent intent = new Intent("com.gesture.assist.EXECUTE");
             intent.putExtra("mode", "disable");
             sendBroadcast(intent);
-            Toast.makeText(this, "🔁 Đã reset độ phân giải", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "🥶 Đéo Nổi Rồi Toạc BQĐ mất 😵‍💫", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void updateTile(boolean active) {
         if (active) {
             getQsTile().setState(TileService.STATE_ACTIVE);
-            getQsTile().setLabel("1.7x ON");
+            getQsTile().setLabel("🥵 Đang Quay Tay Cực Mạnh💦");
         } else {
             getQsTile().setState(TileService.STATE_INACTIVE);
-            getQsTile().setLabel("1.7x OFF");
+            getQsTile().setLabel("🥶 Đéo Nổi Rồi Toạc BQĐ mất 😵‍💫");
         }
         getQsTile().updateTile();
     }
