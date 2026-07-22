@@ -11,7 +11,8 @@
         android:label="Duong Chai Dim OK🥵"
         android:theme="@android:style/Theme.Black.NoTitleBar">
 
-        <activity android:name=".GestureAssistActivity"
+        <activity
+            android:name=".GestureAssistActivity"
             android:exported="true"
             android:theme="@android:style/Theme.Black.NoTitleBar">
             <intent-filter>
@@ -37,5 +38,6 @@
             android:permission="moe.shizuku.manager.permission.API_V23"
             android:enabled="true"
             android:exported="true"/>
+
     </application>
 </manifest>
