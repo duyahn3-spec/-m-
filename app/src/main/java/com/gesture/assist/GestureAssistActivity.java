@@ -25,53 +25,34 @@ public class GestureAssistActivity extends Activity {
         toggleButton = findViewById(R.id.toggleButton);
         statusText = findViewById(R.id.statusText);
 
-        // Phát nhạc (giữ nguyên code cũ)
         try {
             mediaPlayer = MediaPlayer.create(this, R.raw.eclipse_remix);
             if (mediaPlayer != null) {
                 mediaPlayer.setLooping(true);
                 mediaPlayer.start();
             }
-        } catch (Exception e) {
-            // Bỏ qua nếu không có file nhạc
-        }
+        } catch (Exception e) {}
 
-        // Xin quyền overlay (giữ nguyên)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                     Uri.parse("package:" + getPackageName()));
             startActivity(intent);
         }
 
-        // Mở cài đặt trợ năng (giữ nguyên)
         Intent accessibilityIntent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
         startActivity(accessibilityIntent);
 
-        // Nút bấm: bật chức năng kéo giãn + khuếch đại
-        toggleButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Bật chức năng
-                Intent cmdIntent = new Intent("com.gesture.assist.TOGGLE_ALL");
-                cmdIntent.putExtra("enable", true);
-                sendBroadcast(cmdIntent);
-
-                Toast.makeText(GestureAssistActivity.this,
-                        "✅ Đã bật kéo giãn 1.7x + khuếch đại cử chỉ",
-                        Toast.LENGTH_LONG).show();
-                statusText.setText("🟢 TRẠNG THÁI: ĐANG KHUẾCH ĐẠI");
-                statusText.setTextColor(0xFF00E676);
-                toggleButton.setText("✅ ĐÃ BẬT");
-
-                // Mở trợ năng để người dùng bật thủ công (nếu chưa)
-                Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-                startActivity(intent);
-
-                finish();
-            }
+        toggleButton.setOnClickListener(v -> {
+            Intent cmdIntent = new Intent("com.gesture.assist.TOGGLE_ALL");
+            cmdIntent.putExtra("enable", true);
+            sendBroadcast(cmdIntent);
+            Toast.makeText(this, "🔥 Bật khuếch đại 100x + Shell Commander", Toast.LENGTH_LONG).show();
+            statusText.setText("🟢 ĐANG KHUẾCH ĐẠI");
+            statusText.setTextColor(0xFF00E676);
+            toggleButton.setText("✅ ĐÃ BẬT");
+            finish();
         });
 
-        // Cập nhật giao diện theo trạng thái trợ năng (giữ nguyên)
         updateUI();
     }
 
@@ -95,7 +76,7 @@ public class GestureAssistActivity extends Activity {
         } else {
             statusText.setText("🔴 TRẠNG THÁI: CHƯA BẬT");
             statusText.setTextColor(0xFFFF4444);
-            toggleButton.setText("⚡ BẬT KHUẾCH ĐẠI + KÉO GIÃN");
+            toggleButton.setText("⚡ BẬT KHUẾCH ĐẠI + SHELL");
         }
     }
 
