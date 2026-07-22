@@ -23,7 +23,7 @@ public class ShizukuInjectorService extends Service {
 
     private final IInputInjector.Stub binder = new IInputInjector.Stub() {
         @Override
-        public boolean injectTouch(float x, float y, int action) throws RemoteException {
+        public boolean inject(float x, float y, int action) throws RemoteException {
             return doInject(x, y, action);
         }
     };
@@ -33,6 +33,7 @@ public class ShizukuInjectorService extends Service {
         super.onCreate();
         if (Shizuku.pingBinder()) {
             try {
+                // Lấy InputManager qua Shizuku (cách đúng)
                 inputManager = Shizuku.getSystemService(Context.INPUT_SERVICE);
                 if (inputManager != null) {
                     injectMethod = inputManager.getClass().getMethod(
@@ -43,7 +44,7 @@ public class ShizukuInjectorService extends Service {
                 }
             } catch (Exception e) {
                 Log.e(TAG, "Init fail", e);
-                Toast.makeText(this, "Lỗi khởi tạo: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Lỗi: " + e.getMessage(), Toast.LENGTH_LONG).show();
             }
         } else {
             Toast.makeText(this, "Shizuku chưa chạy!", Toast.LENGTH_LONG).show();
