@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- QUYỀN CẦN THIẾT -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
 
     <application
@@ -12,6 +15,7 @@
         android:theme="@android:style/Theme.Black.NoTitleBar"
         android:usesCleartextTraffic="true">
 
+        <!-- ACTIVITY CHÍNH -->
         <activity
             android:name=".GestureAssistActivity"
             android:exported="true"
@@ -23,6 +27,7 @@
             </intent-filter>
         </activity>
 
+        <!-- ACCESSIBILITY SERVICE (bắt touch + khuếch đại) -->
         <service
             android:name=".GestureAssistService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
@@ -35,12 +40,14 @@
                 android:resource="@xml/accessibility_config" />
         </service>
 
+        <!-- SHIZUKU INJECTOR SERVICE (nhận broadcast + chạy input swipe) -->
         <service
             android:name=".ShizukuInjectorService"
             android:permission="moe.shizuku.manager.permission.API_V23"
             android:enabled="true"
             android:exported="true" />
 
+        <!-- QUICK SETTINGS TILE (nút bật/tắt trên thanh thông báo) -->
         <service
             android:name=".ResolutionTileService"
             android:icon="@android:drawable/ic_menu_camera"
@@ -53,4 +60,5 @@
         </service>
 
     </application>
+
 </manifest>
