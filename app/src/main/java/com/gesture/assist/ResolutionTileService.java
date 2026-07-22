@@ -28,26 +28,24 @@ public class ResolutionTileService extends TileService {
         isActive = !isActive;
         updateTile(isActive);
 
+        Intent intent = new Intent("com.gesture.assist.TOGGLE_ALL");
+        intent.putExtra("enable", isActive);
+        sendBroadcast(intent);
+
         if (isActive) {
-            Intent intent = new Intent("com.gesture.assist.EXECUTE");
-            intent.putExtra("mode", "enable");
-            sendBroadcast(intent);
-            Toast.makeText(this, "🥵 Đang Quay Tay Cực Mạnh 💦", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "🥵 BẬT: Kéo giãn 1.7x + Khuếch đại cử chỉ", Toast.LENGTH_SHORT).show();
         } else {
-            Intent intent = new Intent("com.gesture.assist.EXECUTE");
-            intent.putExtra("mode", "disable");
-            sendBroadcast(intent);
-            Toast.makeText(this, "🥶 Đéo Nổi Rồi Toạc BQĐ mất 😵‍💫", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "🥶 TẮT: Reset màn hình + Tắt khuếch đại", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void updateTile(boolean active) {
         if (active) {
-            getQsTile().setState(1); // TileService.STATE_ACTIVE
-            getQsTile().setLabel("🥵 Đang Quay Tay Cực Mạnh💦");
+            getQsTile().setState(1);
+            getQsTile().setLabel("🥵 ON");
         } else {
-            getQsTile().setState(0); // TileService.STATE_INACTIVE
-            getQsTile().setLabel("🥶 Đéo Nổi Rồi Toạc BQĐ mất 😵‍💫");
+            getQsTile().setState(0);
+            getQsTile().setLabel("🥶 OFF");
         }
         getQsTile().updateTile();
     }
