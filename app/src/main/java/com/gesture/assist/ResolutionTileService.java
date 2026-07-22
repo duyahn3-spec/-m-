@@ -1,8 +1,6 @@
 package com.gesture.assist;
 
 import android.content.Intent;
-import android.os.Handler;
-import android.os.Looper;
 import android.service.quicksettings.TileService;
 import android.widget.Toast;
 
