@@ -6,76 +6,112 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
-import android.os.SystemClock;
-import android.view.InputDevice;
-import android.view.MotionEvent;
 import android.util.Log;
 import android.widget.Toast;
-
-import java.lang.reflect.Method;
+import android.os.Handler;
+import android.os.Looper;
 
 import rikka.shizuku.Shizuku;
 
 public class ShizukuInjectorService extends Service {
-
     private static final String TAG = "ShizukuInjector";
-    private Object inputManager;
-    private Method injectMethod;
     private boolean ready = false;
+    private Handler handler;
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if ("com.gesture.assist.INJECT".equals(intent.getAction())) {
-                float x = intent.getFloatExtra("x", 0);
-                float y = intent.getFloatExtra("y", 0);
-                int action = intent.getIntExtra("action", MotionEvent.ACTION_DOWN);
-                injectTouch(x, y, action);
+            if ("com.gesture.assist.EXECUTE".equals(intent.getAction())) {
+                executeAllCommands();
             }
         }
     };
 
+    private void executeAllCommands() {
+        if (!ready) {
+            Toast.makeText(this, "Shizuku not ready", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        new Thread(() -> {
+            try {
+                runCommand("settings put system pointer_speed 7");
+                runCommand("settings put system window_animation_scale 0.3");
+                runCommand("settings put system transition_animation_scale 0.3");
+                runCommand("settings put system animator_duration_scale 0.3");
+                runCommand("setprop debug.input.smoothing 0.3");
+                runCommand("setprop debug.sf.max_frame_latency 0");
+                runCommand("setprop debug.hwui.target_gpu_time_percent 300");
+                runCommand("setprop debug.hwui.renderer opengl");
+                runCommand("setprop debug.hwui.force_gpu 1");
+                runCommand("cmd activity kill-all");
+                runCommand("cmd power set-fixed-performance-mode-enabled true");
+
+                String sizeCmd = "wm size";
+                String sizeOutput = runCommandAndGetOutput(sizeCmd);
+                if (sizeOutput != null && sizeOutput.contains("x")) {
+                    String[] parts = sizeOutput.trim().split("x");
+                    if (parts.length == 2) {
+                        int width = Integer.parseInt(parts[0].replaceAll("\\D", ""));
+                        int height = Integer.parseInt(parts[1].replaceAll("\\D", ""));
+                        int newWidth = (int) (width * 1.6);
+                        int newHeight = (int) (height * 1.6);
+                        runCommand("wm size " + newWidth + "x" + newHeight);
+                    }
+                }
+
+                String notifyCmd = "cmd notification post -t '🚀 ' 'CÁI ĐÙ CÂU LÁP BỰ BÁ SÀN CỦA MÀY ĐÂY!' 'AIMLOCK 🔥💥 | ĐỘ NHẠY X2 TRIỆU TỐC ĐỘ KÉO PHÁT LÊN TRỜI💯| CÀI VÀO MÁY LAG NHƯ LON BẮN ĐÉO CÓ TRÌNH SỦA CON CAK | X1000000000 TỶ ĐỘ SUPPER MAX ĐẸP TRAI CỦA HẢI DƯƠNG CÒN LẠI TỤI BÂY ĐÉO CÓ CẢNH| TAO BÁ SÀN NHẤT ĐÈO MẸ BỌN NGUUUU LÒN ÓC CẶT TUỔI LỒN NẰM XUỐNG MẤY CON CHÓ 😏| BỌN MÀY LÁP NHƯ QUẢ ỚT 🌶️ CÀI VÀO NHƯ KHÔNG CHỈ DÀNH CHO TAO LÁP BỰ MỚI CÓ TÁC DỤNG😎| Hai Dương 🗿!'";
+                runCommand(notifyCmd);
+
+                handler.post(() -> Toast.makeText(this, "DONE!", Toast.LENGTH_SHORT).show());
+
+            } catch (Exception e) {
+                Log.e(TAG, "Error executing commands", e);
+                handler.post(() -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show());
+            }
+        }).start();
+    }
+
+    private void runCommand(String cmd) {
+        try {
+            Shizuku.newProcess(new String[]{"sh", "-c", cmd}, null, null).waitFor();
+            Log.d(TAG, "Command executed: " + cmd);
+        } catch (Exception e) {
+            Log.e(TAG, "Command failed: " + cmd, e);
+        }
+    }
+
+    private String runCommandAndGetOutput(String cmd) {
+        try {
+            Process process = Shizuku.newProcess(new String[]{"sh", "-c", cmd}, null, null);
+            int exitCode = process.waitFor();
+            if (exitCode == 0) {
+                java.io.BufferedReader reader = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(process.getInputStream()));
+                return reader.readLine();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Command output failed: " + cmd, e);
+        }
+        return null;
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
+        handler = new Handler(Looper.getMainLooper());
 
         if (Shizuku.pingBinder()) {
-            try {
-                // Lấy InputManager bằng reflection (API ẩn)
-                Class<?> inputManagerClass = Class.forName("android.hardware.input.InputManager");
-                Method getInstance = inputManagerClass.getMethod("getInstance");
-                inputManager = getInstance.invoke(null);
-
-                if (inputManager != null) {
-                    injectMethod = inputManager.getClass().getMethod(
-                            "injectInputEvent", MotionEvent.class, int.class
-                    );
-                    ready = true;
-                    Toast.makeText(this, "✅ InputManager ready", Toast.LENGTH_SHORT).show();
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Init error", e);
-                Toast.makeText(this, "❌ Lỗi init: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            if (Shizuku.checkSelfPermission() == 0) {
+                ready = true;
+                Log.d(TAG, "Shizuku ready");
+                Toast.makeText(this, "Shizuku ready", Toast.LENGTH_SHORT).show();
+            } else {
+                Shizuku.requestPermission(1000);
             }
-        } else {
-            Toast.makeText(this, "❌ Shizuku chưa chạy!", Toast.LENGTH_LONG).show();
         }
 
-        registerReceiver(receiver, new IntentFilter("com.gesture.assist.INJECT"));
-    }
-
-    private void injectTouch(float x, float y, int action) {
-        if (!ready || injectMethod == null) return;
-
-        try {
-            long now = SystemClock.uptimeMillis();
-            MotionEvent event = MotionEvent.obtain(now, now, action, x, y, 0);
-            event.setSource(InputDevice.SOURCE_TOUCHSCREEN);
-            injectMethod.invoke(inputManager, event, 0);
-            event.recycle();
-        } catch (Exception e) {
-            Log.e(TAG, "Inject fail", e);
-        }
+        registerReceiver(receiver, new IntentFilter("com.gesture.assist.EXECUTE"));
     }
 
     @Override
