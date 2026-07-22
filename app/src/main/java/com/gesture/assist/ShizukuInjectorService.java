@@ -21,14 +21,12 @@ public class ShizukuInjectorService extends Service {
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if ("com.gesture.assist.EXECUTE".equals(intent.getAction())) {
-                String mode = intent.getStringExtra("mode");
-                if ("enable".equals(mode)) {
+            if ("com.gesture.assist.TOGGLE_ALL".equals(intent.getAction())) {
+                boolean enable = intent.getBooleanExtra("enable", true);
+                if (enable) {
                     executeEnable();
-                } else if ("disable".equals(mode)) {
-                    executeDisable();
                 } else {
-                    executeEnable();
+                    executeDisable();
                 }
             }
         }
@@ -41,18 +39,6 @@ public class ShizukuInjectorService extends Service {
         }
         new Thread(() -> {
             try {
-                runCommand("settings put system pointer_speed 7");
-                runCommand("settings put system window_animation_scale 0.3");
-                runCommand("settings put system transition_animation_scale 0.3");
-                runCommand("settings put system animator_duration_scale 0.3");
-                runCommand("setprop debug.input.smoothing 0.3");
-                runCommand("setprop debug.sf.max_frame_latency 0");
-                runCommand("setprop debug.hwui.target_gpu_time_percent 300");
-                runCommand("setprop debug.hwui.renderer opengl");
-                runCommand("setprop debug.hwui.force_gpu 1");
-                runCommand("cmd activity kill-all");
-                runCommand("cmd power set-fixed-performance-mode-enabled true");
-
                 String sizeOutput = runCommandAndGetOutput("wm size");
                 if (sizeOutput != null && sizeOutput.contains("x")) {
                     String[] parts = sizeOutput.trim().split("x");
@@ -64,15 +50,9 @@ public class ShizukuInjectorService extends Service {
                         runCommand("wm size " + newWidth + "x" + newHeight);
                     }
                 }
-
-                String notifyCmd = "cmd notification post -t '🚀 ' 'CÁI ĐÙ CÂU LÁP BỰ BÁ SÀN CỦA MÀY ĐÂY!' 'AIMLOCK 🔥💥 | ĐỘ NHẠY X2 TRIỆU TỐC ĐỘ KÉO PHÁT LÊN TRỜI💯| CÀI VÀO MÁY LAG NHƯ LON BẮN ĐÉO CÓ TRÌNH SỦA CON CAK | X1000000000 TỶ ĐỘ SUPPER MAX ĐẸP TRAI CỦA HẢI DƯƠNG CÒN LẠI TỤI BÂY ĐÉO CÓ CẢNH| TAO BÁ SÀN NHẤT ĐÈO MẸ BỌN NGUUUU LÒN ÓC CẶT TUỔI LỒN NẰM XUỐNG MẤY CON CHÓ 😏| BỌN MÀY LÁP NHƯ QUẢ ỚT 🌶️ CÀI VÀO NHƯ KHÔNG CHỈ DÀNH CHO TAO LÁP BỰ MỚI CÓ TÁC DỤNG😎| Hai Dương 🗿!'";
-                runCommand(notifyCmd);
-
-                handler.post(() -> Toast.makeText(ShizukuInjectorService.this, "🥵 Đã kéo giãn 1.7x", Toast.LENGTH_SHORT).show());
-
+                handler.post(() -> Toast.makeText(ShizukuInjectorService.this, "✅ Kéo giãn 1.7x", Toast.LENGTH_SHORT).show());
             } catch (Exception e) {
                 Log.e(TAG, "Error", e);
-                handler.post(() -> Toast.makeText(ShizukuInjectorService.this, "❌ Lỗi: " + e.getMessage(), Toast.LENGTH_LONG).show());
             }
         }).start();
     }
@@ -82,7 +62,7 @@ public class ShizukuInjectorService extends Service {
         new Thread(() -> {
             try {
                 runCommand("wm size reset");
-                handler.post(() -> Toast.makeText(ShizukuInjectorService.this, "🥶 Đã reset resolution", Toast.LENGTH_SHORT).show());
+                handler.post(() -> Toast.makeText(ShizukuInjectorService.this, "🔁 Reset màn hình", Toast.LENGTH_SHORT).show());
             } catch (Exception e) {
                 Log.e(TAG, "Reset error", e);
             }
@@ -128,7 +108,7 @@ public class ShizukuInjectorService extends Service {
             Toast.makeText(this, "Shizuku chưa chạy!", Toast.LENGTH_LONG).show();
         }
 
-        registerReceiver(receiver, new IntentFilter("com.gesture.assist.EXECUTE"));
+        registerReceiver(receiver, new IntentFilter("com.gesture.assist.TOGGLE_ALL"));
     }
 
     @Override
