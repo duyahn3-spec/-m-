@@ -11,22 +11,19 @@ import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.WindowManager;
 import android.widget.Toast;
-import java.security.SecureRandom;
 
 public class GestureAssistService extends AccessibilityService {
-    private static final float SCALE_FACTOR = 30.0f;
+    private static final float SCALE_FACTOR = 30.0f; // Mày tăng lên 50 nếu muốn nhanh hơn
     private WindowManager wm;
     private OverlayView overlay;
     private boolean isActive = false;
     private Vibrator vibrator;
     private float screenWidth, screenHeight;
     private float lastX, lastY;
-    private SecureRandom random;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        random = new SecureRandom();
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
 
@@ -36,7 +33,7 @@ public class GestureAssistService extends AccessibilityService {
         screenHeight = metrics.heightPixels;
 
         createOverlay();
-        Toast.makeText(this, "Duong Chai Dim OK", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Kích hoạt khuếch đại x" + SCALE_FACTOR, Toast.LENGTH_SHORT).show();
         isActive = true;
     }
 
@@ -88,7 +85,7 @@ public class GestureAssistService extends AccessibilityService {
             float boostedX = Math.max(0, Math.min(screenWidth, rawX + deltaX));
             float boostedY = Math.max(0, Math.min(screenHeight, rawY + deltaY));
 
-            // Gửi MOVE và UP đến UserService qua Broadcast
+            // Gửi MOVE và UP
             sendInject(boostedX, boostedY, MotionEvent.ACTION_MOVE);
             if (action == MotionEvent.ACTION_UP) {
                 sendInject(boostedX, boostedY, MotionEvent.ACTION_UP);
