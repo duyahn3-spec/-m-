@@ -1,10 +1,13 @@
 package com.gesture.assist;
 
 import android.accessibilityservice.AccessibilityService;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.PixelFormat;
-import android.os.Build;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.view.Gravity;
@@ -12,14 +15,33 @@ import android.view.MotionEvent;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import rikka.shizuku.Shizuku;
+
 public class GestureAssistService extends AccessibilityService {
-    private static final float SCALE_FACTOR = 30.0f; // Mày tăng lên 50 nếu muốn nhanh hơn
+    private static final float SCALE_FACTOR = 30.0f;
     private WindowManager wm;
     private OverlayView overlay;
     private boolean isActive = false;
     private Vibrator vibrator;
     private float screenWidth, screenHeight;
     private float lastX, lastY;
+    private IInputInjector injectorBinder;
+    private boolean serviceBound = false;
+
+    private final ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            injectorBinder = IInputInjector.Stub.asInterface(service);
+            serviceBound = true;
+            Toast.makeText(GestureAssistService.this, "Đã kết nối Injector", Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            injectorBinder = null;
+            serviceBound = false;
+        }
+    };
 
     @Override
     public void onCreate() {
@@ -31,6 +53,10 @@ public class GestureAssistService extends AccessibilityService {
         wm.getDefaultDisplay().getRealMetrics(metrics);
         screenWidth = metrics.widthPixels;
         screenHeight = metrics.heightPixels;
+
+        // Bind tới ShizukuInjectorService
+        Intent intent = new Intent(this, ShizukuInjectorService.class);
+        Shizuku.bindService(intent, connection, Context.BIND_AUTO_CREATE);
 
         createOverlay();
         Toast.makeText(this, "Kích hoạt khuếch đại x" + SCALE_FACTOR, Toast.LENGTH_SHORT).show();
@@ -58,7 +84,7 @@ public class GestureAssistService extends AccessibilityService {
     }
 
     private void processTouch(MotionEvent rawEvent) {
-        if (!isActive) return;
+        if (!isActive || !serviceBound || injectorBinder == null) return;
 
         int action = rawEvent.getActionMasked();
         float rawX = rawEvent.getRawX();
@@ -68,14 +94,17 @@ public class GestureAssistService extends AccessibilityService {
             lastX = rawX;
             lastY = rawY;
             if (vibrator != null) {
-                if (Build.VERSION.SDK_INT >= 26) {
+                if (android.os.Build.VERSION.SDK_INT >= 26) {
                     vibrator.vibrate(VibrationEffect.createOneShot(4, 20));
                 } else {
                     vibrator.vibrate(4);
                 }
             }
-            // Gửi DOWN
-            sendInject(rawX, rawY, MotionEvent.ACTION_DOWN);
+            try {
+                injectorBinder.injectTouch(rawX, rawY, MotionEvent.ACTION_DOWN);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
             return;
         }
 
@@ -85,23 +114,18 @@ public class GestureAssistService extends AccessibilityService {
             float boostedX = Math.max(0, Math.min(screenWidth, rawX + deltaX));
             float boostedY = Math.max(0, Math.min(screenHeight, rawY + deltaY));
 
-            // Gửi MOVE và UP
-            sendInject(boostedX, boostedY, MotionEvent.ACTION_MOVE);
-            if (action == MotionEvent.ACTION_UP) {
-                sendInject(boostedX, boostedY, MotionEvent.ACTION_UP);
+            try {
+                injectorBinder.injectTouch(boostedX, boostedY, MotionEvent.ACTION_MOVE);
+                if (action == MotionEvent.ACTION_UP) {
+                    injectorBinder.injectTouch(boostedX, boostedY, MotionEvent.ACTION_UP);
+                }
+            } catch (RemoteException e) {
+                e.printStackTrace();
             }
 
             lastX = rawX;
             lastY = rawY;
         }
-    }
-
-    private void sendInject(float x, float y, int action) {
-        Intent intent = new Intent("com.gesture.assist.INJECT_TOUCH");
-        intent.putExtra("x", x);
-        intent.putExtra("y", y);
-        intent.putExtra("action", action);
-        sendBroadcast(intent);
     }
 
     @Override
@@ -110,6 +134,10 @@ public class GestureAssistService extends AccessibilityService {
         if (overlay != null) {
             try { wm.removeView(overlay); } catch (Exception ignored) {}
             overlay = null;
+        }
+        if (serviceBound) {
+            unbindService(connection);
+            serviceBound = false;
         }
         super.onDestroy();
     }
