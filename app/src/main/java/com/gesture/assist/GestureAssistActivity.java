@@ -7,7 +7,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,8 +45,8 @@ public class GestureAssistActivity extends Activity {
             Intent cmdIntent = new Intent("com.gesture.assist.TOGGLE_ALL");
             cmdIntent.putExtra("enable", true);
             sendBroadcast(cmdIntent);
-            Toast.makeText(this, "🔥 Bật khuếch đại 100x + Shell Commander", Toast.LENGTH_LONG).show();
-            statusText.setText("🟢 ĐANG KHUẾCH ĐẠI");
+            Toast.makeText(this, "🔥 Bật khuếch đại 100x + Shell + Tối ưu", Toast.LENGTH_LONG).show();
+            statusText.setText("🟢 ĐANG KHUẾCH ĐẠI & TỐI ƯU");
             statusText.setTextColor(0xFF00E676);
             toggleButton.setText("✅ ĐÃ BẬT");
             finish();
@@ -76,7 +75,7 @@ public class GestureAssistActivity extends Activity {
         } else {
             statusText.setText("🔴 TRẠNG THÁI: CHƯA BẬT");
             statusText.setTextColor(0xFFFF4444);
-            toggleButton.setText("⚡ BẬT KHUẾCH ĐẠI + SHELL");
+            toggleButton.setText("⚡ BẬT KHUẾCH ĐẠI + TỐI ƯU");
         }
     }
 
