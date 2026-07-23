@@ -38,8 +38,7 @@ public class ShizukuInjectorService extends Service {
             try {
                 String cmd = String.format("input swipe %d %d %d %d %d",
                         (int) x1, (int) y1, (int) x2, (int) y2, Math.max(1, duration));
-                Process process = Runtime.getRuntime().exec(new String[]{"sh", "-c", cmd});
-                process.waitFor();
+                ShizukuShell.runCommand(cmd);
                 Log.d(TAG, "Swipe executed: " + cmd);
             } catch (Exception e) {
                 Log.e(TAG, "Swipe error", e);
