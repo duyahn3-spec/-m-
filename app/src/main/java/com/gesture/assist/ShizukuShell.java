@@ -7,6 +7,7 @@ import android.util.Log;
 import java.lang.reflect.Method;
 
 import rikka.shizuku.Shizuku;
+import rikka.shizuku.SystemServiceHelper;
 
 public class ShizukuShell {
     private static final String TAG = "ShizukuShell";
@@ -15,7 +16,8 @@ public class ShizukuShell {
 
     static {
         try {
-            IBinder binder = Shizuku.getSystemService("shell");
+            // Dùng SystemServiceHelper để lấy shell service (cách chuẩn của Shizuku)[reference:0]
+            IBinder binder = SystemServiceHelper.getSystemService("shell");
             if (binder != null) {
                 // Lấy IShellService.Stub.asInterface(binder) qua reflection
                 Class<?> stubClass = Class.forName("rikka.shizuku.shell.IShellService$Stub");
@@ -23,6 +25,9 @@ public class ShizukuShell {
                 shellService = asInterface.invoke(null, binder);
                 // Lấy method run(String cmd)
                 runMethod = shellService.getClass().getMethod("run", String.class);
+                Log.d(TAG, "ShellService initialized successfully");
+            } else {
+                Log.e(TAG, "ShellService binder is null");
             }
         } catch (Exception e) {
             Log.e(TAG, "Không thể khởi tạo ShellService", e);
