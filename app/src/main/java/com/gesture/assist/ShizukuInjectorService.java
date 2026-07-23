@@ -51,7 +51,6 @@ public class ShizukuInjectorService extends Service {
         super.onCreate();
         optimizer = new UltimateOptimizer(this);
 
-        // Giữ CPU không ngủ
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "DuongChai:WakeLock");
         wakeLock.acquire(3600 * 1000L);
@@ -59,7 +58,7 @@ public class ShizukuInjectorService extends Service {
         if (Shizuku.pingBinder()) {
             if (Shizuku.checkSelfPermission() == 0) {
                 ready = true;
-                Toast.makeText(this, "Shizuku ready - Tối ưu toàn bộ", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Shizuku ready", Toast.LENGTH_SHORT).show();
                 optimizer.optimizeAll();
             } else {
                 Shizuku.requestPermission(1000);
