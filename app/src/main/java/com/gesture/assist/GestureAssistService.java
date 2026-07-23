@@ -11,6 +11,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.PixelFormat;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.Process;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
@@ -19,6 +21,9 @@ import android.view.MotionEvent;
 import android.view.WindowManager;
 import android.widget.RemoteViews;
 import android.widget.Toast;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class GestureAssistService extends AccessibilityService {
     private static final float SCALE_FACTOR = 100.0f;
@@ -29,6 +34,8 @@ public class GestureAssistService extends AccessibilityService {
     private Vibrator vibrator;
     private float lastX, lastY;
     private boolean overlayCreated = false;
+    private Handler handler = new Handler(Looper.getMainLooper());
+    private ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private final BroadcastReceiver toggleReceiver = new BroadcastReceiver() {
         @Override
@@ -48,42 +55,49 @@ public class GestureAssistService extends AccessibilityService {
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
 
-        // Tăng độ ưu tiên process
         Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_DISPLAY);
 
-        // Tạo overlay với retry
-        createOverlayWithRetry();
-
-        // Đăng ký receiver
-        registerReceiver(toggleReceiver, new IntentFilter("com.gesture.assist.TOGGLE_ALL"));
-
-        // Khởi tạo notification
-        startShellNotification();
-
-        // Bật service Shizuku
-        Intent serviceIntent = new Intent(this, ShizukuInjectorService.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(serviceIntent);
+        // Đăng ký receiver với flag an toàn cho Android 13+
+        IntentFilter filter = new IntentFilter("com.gesture.assist.TOGGLE_ALL");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(toggleReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
         } else {
-            startService(serviceIntent);
+            registerReceiver(toggleReceiver, filter);
         }
 
-        Toast.makeText(this, "🔥 Khuếch đại x100 + Tối ưu toàn hệ thống", Toast.LENGTH_LONG).show();
+        // Tạo overlay trong background
+        handler.post(() -> createOverlayWithRetry());
+
+        // Tạo notification sau khi overlay
+        handler.postDelayed(this::startShellNotification, 1000);
+
+        // Khởi động ShizukuInjectorService (sau khi có quyền)
+        handler.post(() -> {
+            Intent serviceIntent = new Intent(this, ShizukuInjectorService.class);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(serviceIntent);
+            } else {
+                startService(serviceIntent);
+            }
+        });
+
+        Toast.makeText(this, "🔥 Khuếch đại x100 + Tối ưu", Toast.LENGTH_SHORT).show();
     }
 
     private void createOverlayWithRetry() {
-        int retries = 5;
+        if (overlayCreated) return;
+        int retries = 3;
         while (retries-- > 0 && !overlayCreated) {
             try {
                 createOverlay();
                 overlayCreated = true;
                 break;
             } catch (Exception e) {
-                try { Thread.sleep(500); } catch (InterruptedException ignored) {}
+                try { Thread.sleep(300); } catch (InterruptedException ignored) {}
             }
         }
         if (!overlayCreated) {
-            Toast.makeText(this, "⚠️ Overlay không tạo được, kiểm tra quyền hiển thị", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "⚠️ Overlay không tạo được, kiểm tra quyền", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -149,7 +163,9 @@ public class GestureAssistService extends AccessibilityService {
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Shell Commander",
                     NotificationManager.IMPORTANCE_LOW);
             NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-            if (manager != null) manager.createNotificationChannel(channel);
+            if (manager != null) {
+                manager.createNotificationChannel(channel);
+            }
         }
 
         RemoteViews views = new RemoteViews(getPackageName(), R.layout.notification_shell);
@@ -160,14 +176,19 @@ public class GestureAssistService extends AccessibilityService {
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        Notification notification = new Notification.Builder(this, CHANNEL_ID)
+        Notification.Builder builder = new Notification.Builder(this, CHANNEL_ID)
                 .setContentTitle("Duong Chai Shell")
                 .setContentText("📟 Bấm để nhập lệnh ADB")
                 .setSmallIcon(android.R.drawable.ic_menu_camera)
                 .setOngoing(true)
                 .setContentIntent(pendingIntent)
-                .build();
+                .setCustomContentView(views);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setStyle(new Notification.DecoratedCustomViewStyle());
+        }
+
+        Notification notification = builder.build();
         startForeground(1, notification);
     }
 
@@ -187,6 +208,7 @@ public class GestureAssistService extends AccessibilityService {
         if (overlay != null) {
             try { wm.removeView(overlay); } catch (Exception ignored) {}
         }
+        executor.shutdownNow();
         super.onDestroy();
     }
 
