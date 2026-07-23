@@ -2,9 +2,11 @@ package com.gesture.assist;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.Settings;
 import android.widget.Button;
 import android.widget.TextView;
@@ -13,6 +15,9 @@ import android.widget.Toast;
 public class GestureAssistActivity extends Activity {
     private Button toggleButton;
     private TextView statusText;
+    private MediaPlayer mediaPlayer;
+    private Handler handler = new Handler();
+    private boolean serviceStarted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,37 +27,58 @@ public class GestureAssistActivity extends Activity {
         toggleButton = findViewById(R.id.toggleButton);
         statusText = findViewById(R.id.statusText);
 
-        // Xin quyền overlay
+        try {
+            mediaPlayer = MediaPlayer.create(this, R.raw.eclipse_remix);
+            if (mediaPlayer != null) {
+                mediaPlayer.setLooping(true);
+                mediaPlayer.start();
+            }
+        } catch (Exception e) {}
+
+        // Kiểm tra quyền overlay
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                     Uri.parse("package:" + getPackageName()));
             startActivity(intent);
         }
 
-        // Mở trợ năng
+        // Mở cài đặt trợ năng
         Intent accessibilityIntent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
         startActivity(accessibilityIntent);
 
-        // Bật service ngay lập tức
+        // Nút bấm – chỉ start service khi người dùng bấm và đã có quyền
+        toggleButton.setOnClickListener(v -> {
+            if (Settings.canDrawOverlays(this) && isAccessibilityEnabled()) {
+                startServices();
+                Toast.makeText(this, "🔥 Đã bật khuếch đại + tối ưu", Toast.LENGTH_SHORT).show();
+                statusText.setText("🟢 ĐANG CHẠY");
+                statusText.setTextColor(0xFF00E676);
+                toggleButton.setText("✅ ĐÃ BẬT");
+                finish();
+            } else {
+                Toast.makeText(this, "⚠️ Vui lòng bật overlay và trợ năng trước!", Toast.LENGTH_LONG).show();
+                // Mở lại cài đặt
+                startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+            }
+        });
+
+        updateUI();
+    }
+
+    private void startServices() {
+        if (serviceStarted) return;
+        serviceStarted = true;
+        // Khởi động service ShizukuInjector
         Intent serviceIntent = new Intent(this, ShizukuInjectorService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(serviceIntent);
         } else {
             startService(serviceIntent);
         }
-
-        toggleButton.setOnClickListener(v -> {
-            Intent cmdIntent = new Intent("com.gesture.assist.TOGGLE_ALL");
-            cmdIntent.putExtra("enable", true);
-            sendBroadcast(cmdIntent);
-            Toast.makeText(this, "🔥 Bật khuếch đại 100x + Tối ưu", Toast.LENGTH_LONG).show();
-            statusText.setText("🟢 ĐANG KHUẾCH ĐẠI & TỐI ƯU");
-            statusText.setTextColor(0xFF00E676);
-            toggleButton.setText("✅ ĐÃ BẬT");
-            finish();
-        });
-
-        updateUI();
+        // Gửi broadcast bật khuếch đại
+        Intent cmdIntent = new Intent("com.gesture.assist.TOGGLE_ALL");
+        cmdIntent.putExtra("enable", true);
+        sendBroadcast(cmdIntent);
     }
 
     private boolean isAccessibilityEnabled() {
@@ -72,6 +98,10 @@ public class GestureAssistActivity extends Activity {
             statusText.setText("🟢 TRẠNG THÁI: ĐANG CHẠY");
             statusText.setTextColor(0xFF00E676);
             toggleButton.setText("✅ ĐÃ BẬT");
+            // Nếu đã bật trợ năng thì tự start service
+            if (Settings.canDrawOverlays(this) && !serviceStarted) {
+                startServices();
+            }
         } else {
             statusText.setText("🔴 TRẠNG THÁI: CHƯA BẬT");
             statusText.setTextColor(0xFFFF4444);
@@ -83,5 +113,28 @@ public class GestureAssistActivity extends Activity {
     protected void onResume() {
         super.onResume();
         updateUI();
+        if (mediaPlayer != null && !mediaPlayer.isPlaying()) {
+            try { mediaPlayer.start(); } catch (Exception ignored) {}
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            try { mediaPlayer.pause(); } catch (Exception ignored) {}
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mediaPlayer != null) {
+            try {
+                mediaPlayer.stop();
+                mediaPlayer.release();
+                mediaPlayer = null;
+            } catch (Exception ignored) {}
+        }
     }
 }
