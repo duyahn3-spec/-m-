@@ -28,6 +28,7 @@ public class GestureAssistService extends AccessibilityService {
     private boolean isActive = true;
     private Vibrator vibrator;
     private float lastX, lastY;
+    private boolean overlayCreated = false;
 
     private final BroadcastReceiver toggleReceiver = new BroadcastReceiver() {
         @Override
@@ -46,13 +47,20 @@ public class GestureAssistService extends AccessibilityService {
         super.onCreate();
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-        createOverlay();
+
+        // Tăng độ ưu tiên process
+        Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_DISPLAY);
+
+        // Tạo overlay với retry
+        createOverlayWithRetry();
+
+        // Đăng ký receiver
         registerReceiver(toggleReceiver, new IntentFilter("com.gesture.assist.TOGGLE_ALL"));
 
-        Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_DISPLAY);
+        // Khởi tạo notification
         startShellNotification();
 
-        // Bật service tối ưu ngầm
+        // Bật service Shizuku
         Intent serviceIntent = new Intent(this, ShizukuInjectorService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(serviceIntent);
@@ -60,11 +68,29 @@ public class GestureAssistService extends AccessibilityService {
             startService(serviceIntent);
         }
 
-        Toast.makeText(this, "🔥 Khuếch đại x100 + Shell + Tối ưu", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "🔥 Khuếch đại x100 + Tối ưu toàn hệ thống", Toast.LENGTH_LONG).show();
+    }
+
+    private void createOverlayWithRetry() {
+        int retries = 5;
+        while (retries-- > 0 && !overlayCreated) {
+            try {
+                createOverlay();
+                overlayCreated = true;
+                break;
+            } catch (Exception e) {
+                try { Thread.sleep(500); } catch (InterruptedException ignored) {}
+            }
+        }
+        if (!overlayCreated) {
+            Toast.makeText(this, "⚠️ Overlay không tạo được, kiểm tra quyền hiển thị", Toast.LENGTH_LONG).show();
+        }
     }
 
     private void createOverlay() {
-        if (overlay != null) return;
+        if (overlay != null) {
+            try { wm.removeView(overlay); } catch (Exception ignored) {}
+        }
         overlay = new OverlayView(this);
         overlay.setTouchInterceptor(this::processTouch);
 
@@ -198,4 +224,4 @@ public class GestureAssistService extends AccessibilityService {
             void onTouch(MotionEvent event);
         }
     }
-        }
+}
