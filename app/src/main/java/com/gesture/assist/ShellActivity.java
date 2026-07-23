@@ -38,7 +38,7 @@ public class ShellActivity extends Activity {
     private void executeCommand() {
         final String cmd = inputCommand.getText().toString().trim();
         if (cmd.isEmpty()) {
-            Toast.makeText(this, "⚠️ Nhập lệnh trước khi chạy!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "⚠️ Nhập lệnh!", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -48,12 +48,12 @@ public class ShellActivity extends Activity {
 
         new Thread(() -> {
             String result = ShizukuShell.runCommand(cmd);
-            final String finalResult = result.isEmpty() ? "✅ Done (no output)" : result;
+            final String finalResult = result.isEmpty() ? "✅ Done" : result;
             new Handler(Looper.getMainLooper()).post(() -> {
                 outputView.append(finalResult + "\n");
                 scrollView.fullScroll(View.FOCUS_DOWN);
                 runButton.setEnabled(true);
-                Toast.makeText(ShellActivity.this, "✅ Đã chạy xong!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(ShellActivity.this, "✅ Xong!", Toast.LENGTH_SHORT).show();
             });
         }).start();
     }
