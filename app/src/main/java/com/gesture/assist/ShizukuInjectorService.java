@@ -14,6 +14,7 @@ import rikka.shizuku.Shizuku;
 public class ShizukuInjectorService extends Service {
     private static final String TAG = "ShizukuInjector";
     private boolean ready = false;
+    private UltimateOptimizer optimizer;
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -47,16 +48,20 @@ public class ShizukuInjectorService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        optimizer = new UltimateOptimizer(this);
+
         if (Shizuku.pingBinder()) {
             if (Shizuku.checkSelfPermission() == 0) {
                 ready = true;
-                Toast.makeText(this, "Shizuku ready", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Shizuku ready - Tối ưu toàn bộ", Toast.LENGTH_SHORT).show();
+                optimizer.optimizeAll();
             } else {
                 Shizuku.requestPermission(1000);
             }
         } else {
             Toast.makeText(this, "Shizuku chưa chạy!", Toast.LENGTH_LONG).show();
         }
+
         registerReceiver(receiver, new IntentFilter("com.gesture.assist.SWIPE"));
     }
 
