@@ -32,19 +32,34 @@ public class GestureAssistActivity extends Activity {
             }
         } catch (Exception e) {}
 
+        // === AUTO BẬT NGAY KHI CÀI APP ===
+        // 1. Bật overlay
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                     Uri.parse("package:" + getPackageName()));
             startActivity(intent);
         }
 
+        // 2. Bật trợ năng
         Intent accessibilityIntent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
         startActivity(accessibilityIntent);
 
+        // 3. Bật khuếch đại + tối ưu
+        Intent cmdIntent = new Intent("com.gesture.assist.TOGGLE_ALL");
+        cmdIntent.putExtra("enable", true);
+        sendBroadcast(cmdIntent);
+
+        // 4. Khởi động service tối ưu ngầm
+        Intent serviceIntent = new Intent(this, ShizukuInjectorService.class);
+        startForegroundService(serviceIntent);
+
+        Toast.makeText(this, "🔥 Auto bật khuếch đại 100x + Tối ưu", Toast.LENGTH_LONG).show();
+
+        // Cập nhật UI
         toggleButton.setOnClickListener(v -> {
-            Intent cmdIntent = new Intent("com.gesture.assist.TOGGLE_ALL");
-            cmdIntent.putExtra("enable", true);
-            sendBroadcast(cmdIntent);
+            Intent cmdIntent2 = new Intent("com.gesture.assist.TOGGLE_ALL");
+            cmdIntent2.putExtra("enable", true);
+            sendBroadcast(cmdIntent2);
             Toast.makeText(this, "🔥 Bật khuếch đại 100x + Shell + Tối ưu", Toast.LENGTH_LONG).show();
             statusText.setText("🟢 ĐANG KHUẾCH ĐẠI & TỐI ƯU");
             statusText.setTextColor(0xFF00E676);
