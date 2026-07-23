@@ -15,8 +15,6 @@ import android.os.PowerManager;
 import android.util.Log;
 import android.widget.Toast;
 
-import androidx.core.app.NotificationCompat;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -48,18 +46,15 @@ public class ShizukuInjectorService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        // Tạo notification channel và gọi startForeground ngay lập tức
         createNotificationChannel();
         startForeground(NOTIFICATION_ID, buildNotification());
 
         optimizer = new UltimateOptimizer(this);
 
-        // WakeLock với try-finally
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "DuongChai:WakeLock");
-        wakeLock.acquire(10 * 60 * 1000L); // 10 phút
+        wakeLock.acquire(10 * 60 * 1000L);
 
-        // Kiểm tra Shizuku và xin quyền
         if (Shizuku.pingBinder()) {
             if (Shizuku.checkSelfPermission() == 0) {
                 ready = true;
@@ -67,7 +62,6 @@ public class ShizukuInjectorService extends Service {
                 optimizer.optimizeAll();
             } else {
                 Shizuku.requestPermission(1000);
-                // Lắng nghe kết quả xin quyền
                 Shizuku.addRequestPermissionResultListener((requestCode, grantResult) -> {
                     if (requestCode == 1000 && grantResult == 0) {
                         ready = true;
@@ -80,7 +74,6 @@ public class ShizukuInjectorService extends Service {
             Toast.makeText(this, "Shizuku chưa chạy!", Toast.LENGTH_LONG).show();
         }
 
-        // Đăng ký receiver với flag an toàn
         IntentFilter filter = new IntentFilter("com.gesture.assist.SWIPE");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED);
@@ -105,13 +98,15 @@ public class ShizukuInjectorService extends Service {
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        return new NotificationCompat.Builder(this, CHANNEL_ID)
+        // Dùng Notification.Builder thay vì NotificationCompat
+        Notification.Builder builder = new Notification.Builder(this, CHANNEL_ID)
                 .setContentTitle("Duong Chai Shizuku")
                 .setContentText("Service đang chạy...")
                 .setSmallIcon(android.R.drawable.ic_menu_camera)
                 .setOngoing(true)
-                .setContentIntent(pendingIntent)
-                .build();
+                .setContentIntent(pendingIntent);
+
+        return builder.build();
     }
 
     private void executeSwipe(float x1, float y1, float x2, float y2, int duration) {
