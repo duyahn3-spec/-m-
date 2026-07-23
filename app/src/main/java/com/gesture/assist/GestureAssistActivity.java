@@ -2,7 +2,6 @@ package com.gesture.assist;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -14,7 +13,6 @@ import android.widget.Toast;
 public class GestureAssistActivity extends Activity {
     private Button toggleButton;
     private TextView statusText;
-    private MediaPlayer mediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,43 +22,30 @@ public class GestureAssistActivity extends Activity {
         toggleButton = findViewById(R.id.toggleButton);
         statusText = findViewById(R.id.statusText);
 
-        try {
-            mediaPlayer = MediaPlayer.create(this, R.raw.eclipse_remix);
-            if (mediaPlayer != null) {
-                mediaPlayer.setLooping(true);
-                mediaPlayer.start();
-            }
-        } catch (Exception e) {}
-
-        // === AUTO BẬT NGAY KHI CÀI APP ===
-        // 1. Bật overlay
+        // Xin quyền overlay
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                     Uri.parse("package:" + getPackageName()));
             startActivity(intent);
         }
 
-        // 2. Bật trợ năng
+        // Mở trợ năng
         Intent accessibilityIntent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
         startActivity(accessibilityIntent);
 
-        // 3. Bật khuếch đại + tối ưu
-        Intent cmdIntent = new Intent("com.gesture.assist.TOGGLE_ALL");
-        cmdIntent.putExtra("enable", true);
-        sendBroadcast(cmdIntent);
-
-        // 4. Khởi động service tối ưu ngầm
+        // Bật service ngay lập tức
         Intent serviceIntent = new Intent(this, ShizukuInjectorService.class);
-        startForegroundService(serviceIntent);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent);
+        } else {
+            startService(serviceIntent);
+        }
 
-        Toast.makeText(this, "🔥 Auto bật khuếch đại 100x + Tối ưu", Toast.LENGTH_LONG).show();
-
-        // Cập nhật UI
         toggleButton.setOnClickListener(v -> {
-            Intent cmdIntent2 = new Intent("com.gesture.assist.TOGGLE_ALL");
-            cmdIntent2.putExtra("enable", true);
-            sendBroadcast(cmdIntent2);
-            Toast.makeText(this, "🔥 Bật khuếch đại 100x + Shell + Tối ưu", Toast.LENGTH_LONG).show();
+            Intent cmdIntent = new Intent("com.gesture.assist.TOGGLE_ALL");
+            cmdIntent.putExtra("enable", true);
+            sendBroadcast(cmdIntent);
+            Toast.makeText(this, "🔥 Bật khuếch đại 100x + Tối ưu", Toast.LENGTH_LONG).show();
             statusText.setText("🟢 ĐANG KHUẾCH ĐẠI & TỐI ƯU");
             statusText.setTextColor(0xFF00E676);
             toggleButton.setText("✅ ĐÃ BẬT");
@@ -98,28 +83,5 @@ public class GestureAssistActivity extends Activity {
     protected void onResume() {
         super.onResume();
         updateUI();
-        if (mediaPlayer != null && !mediaPlayer.isPlaying()) {
-            try { mediaPlayer.start(); } catch (Exception ignored) {}
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-            try { mediaPlayer.pause(); } catch (Exception ignored) {}
-        }
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mediaPlayer != null) {
-            try {
-                mediaPlayer.stop();
-                mediaPlayer.release();
-                mediaPlayer = null;
-            } catch (Exception ignored) {}
-        }
     }
 }
