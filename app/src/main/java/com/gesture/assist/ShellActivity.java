@@ -36,11 +36,6 @@ public class ShellActivity extends Activity {
             outputView.setText("");
             inputCommand.setText("");
         });
-
-        String cmd = getIntent().getStringExtra("command");
-        if (cmd != null && !cmd.isEmpty()) {
-            inputCommand.setText(cmd);
-        }
     }
 
     private void executeCommand() {
