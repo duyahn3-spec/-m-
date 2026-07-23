@@ -52,7 +52,11 @@ public class GestureAssistService extends AccessibilityService {
         Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_DISPLAY);
         startShellNotification();
 
-        Toast.makeText(this, "🔥 Khuếch đại x100 + Shell Commander", Toast.LENGTH_LONG).show();
+        // Bật service tối ưu ngầm
+        Intent serviceIntent = new Intent(this, ShizukuInjectorService.class);
+        startForegroundService(serviceIntent);
+
+        Toast.makeText(this, "🔥 Khuếch đại x100 + Shell + Tối ưu", Toast.LENGTH_LONG).show();
     }
 
     private void createOverlay() {
