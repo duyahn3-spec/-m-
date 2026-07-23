@@ -18,32 +18,45 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="33">
 
-        <activity android:name=".GestureAssistActivity" android:exported="true"
-            android:screenOrientation="portrait">
+        <activity
+            android:name=".GestureAssistActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Black.NoTitleBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <activity android:name=".ShellActivity" android:exported="true"
-            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ShellActivity"
+            android:exported="true"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Black.NoTitleBar" />
 
-        <service android:name=".GestureAssistService"
+        <service
+            android:name=".GestureAssistService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
-            android:exported="true">
+            android:exported="true"
+            android:process=":gesture_service">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
-            <meta-data android:name="android.accessibilityservice"
+            <meta-data
+                android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_config" />
         </service>
 
-        <service android:name=".ShizukuInjectorService"
+        <service
+            android:name=".ShizukuInjectorService"
             android:permission="moe.shizuku.manager.permission.API_V23"
-            android:enabled="true" android:exported="true" />
+            android:enabled="true"
+            android:exported="true"
+            android:process=":shizuku_service" />
 
-        <service android:name=".ResolutionTileService"
+        <service
+            android:name=".ResolutionTileService"
             android:icon="@android:drawable/ic_menu_camera"
             android:label="🥶 OFF"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
@@ -53,7 +66,9 @@
             </intent-filter>
         </service>
 
-        <receiver android:name=".BootReceiver" android:exported="true">
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
