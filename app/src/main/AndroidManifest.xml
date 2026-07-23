@@ -2,23 +2,24 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- QUYỀN CẦN THIẾT -->
+    <!-- QUYỀN TỐI THƯỢNG -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
 
     <application
         android:allowBackup="true"
         android:icon="@android:drawable/ic_menu_camera"
-        android:label="Duong Chai Dim OK🗿"
+        android:label="Duong Chai Dim OK"
         android:theme="@android:style/Theme.Black.NoTitleBar"
         android:usesCleartextTraffic="true"
         tools:targetApi="33">
 
-        <!-- ACTIVITY CHÍNH -->
         <activity
             android:name=".GestureAssistActivity"
             android:exported="true"
@@ -30,18 +31,18 @@
             </intent-filter>
         </activity>
 
-        <!-- SHELL ACTIVITY (NHẬP LỆNH ADB) -->
         <activity
             android:name=".ShellActivity"
             android:exported="true"
             android:screenOrientation="portrait"
             android:theme="@android:style/Theme.Black.NoTitleBar" />
 
-        <!-- ACCESSIBILITY SERVICE (BẮT TOUCH + KHUẾCH ĐẠI 100x) -->
+        <!-- ACCESSIBILITY SERVICE (BẮT TOUCH + KHUẾCH ĐẠI) -->
         <service
             android:name=".GestureAssistService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
-            android:exported="true">
+            android:exported="true"
+            android:process=":gesture_service">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
@@ -50,14 +51,15 @@
                 android:resource="@xml/accessibility_config" />
         </service>
 
-        <!-- SHIZUKU INJECTOR SERVICE (SWIPE + TỐI ƯU) -->
+        <!-- SHIZUKU INJECTOR SERVICE -->
         <service
             android:name=".ShizukuInjectorService"
             android:permission="moe.shizuku.manager.permission.API_V23"
             android:enabled="true"
-            android:exported="true" />
+            android:exported="true"
+            android:process=":shizuku_service" />
 
-        <!-- QUICK SETTINGS TILE (BẬT/TẮT KHUẾCH ĐẠI) -->
+        <!-- QUICK SETTINGS TILE -->
         <service
             android:name=".ResolutionTileService"
             android:icon="@android:drawable/ic_menu_camera"
@@ -69,15 +71,15 @@
             </intent-filter>
         </service>
 
-        <!-- BOOT RECEIVER (TỰ ĐỘNG CHẠY KHI REBOOT) -->
+        <!-- BOOT RECEIVER -->
         <receiver
             android:name=".BootReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>
         </receiver>
 
     </application>
-
 </manifest>
