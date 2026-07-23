@@ -21,17 +21,17 @@ public class UltimateOptimizer {
     public void optimizeAll() {
         new Thread(() -> {
             try {
-                // CPU
+                // CPU Performance
                 runCommand("echo performance > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
                 runCommand("echo performance > /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor");
                 runCommand("echo 1000000 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq");
                 runCommand("echo 1000000 > /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq");
 
-                // GPU
+                // GPU Performance
                 runCommand("echo performance > /sys/class/kgsl/kgsl-3d0/devfreq/governor");
                 runCommand("echo 1000000000 > /sys/class/kgsl/kgsl-3d0/max_gpuclk");
 
-                // Core online
+                // Giữ tất cả core online
                 for (int i = 0; i < 8; i++) {
                     runCommand("echo 1 > /sys/devices/system/cpu/cpu" + i + "/online");
                 }
@@ -51,7 +51,7 @@ public class UltimateOptimizer {
                 runCommand("settings put system transition_animation_scale 0.0");
                 runCommand("settings put system animator_duration_scale 0.0");
 
-                // GPU render
+                // GPU Render
                 runCommand("settings put global force_gpu_rendering 1");
                 runCommand("setprop debug.hwui.renderer opengl");
                 runCommand("setprop debug.hwui.force_gpu 1");
@@ -62,25 +62,10 @@ public class UltimateOptimizer {
                 // Performance mode
                 runCommand("cmd power set-fixed-performance-mode-enabled true");
 
-                // Kernel
-                runCommand("echo 0 > /proc/sys/kernel/panic_on_oops");
-                runCommand("echo 0 > /proc/sys/kernel/panic");
-
-                // TCP
-                runCommand("echo 1 > /proc/sys/net/ipv4/tcp_low_latency");
-
-                // Limit background
-                runCommand("settings put global background_process_limit 1");
-
-                // Mount
-                runCommand("mount -o remount,noatime /data");
-                runCommand("mount -o remount,noatime /system");
-
                 handler.post(() -> Toast.makeText(context, "✅ Tối ưu toàn bộ thành công!", Toast.LENGTH_LONG).show());
 
             } catch (Exception e) {
                 Log.e(TAG, "Optimize error", e);
-                handler.post(() -> Toast.makeText(context, "❌ Lỗi tối ưu: " + e.getMessage(), Toast.LENGTH_LONG).show());
             }
         }).start();
     }
@@ -92,17 +77,6 @@ public class UltimateOptimizer {
             Log.d(TAG, "Executed: " + cmd);
         } catch (Exception e) {
             Log.e(TAG, "Failed: " + cmd, e);
-        }
-    }
-
-    private String runCommandAndGetOutput(String cmd) {
-        try {
-            Process process = Runtime.getRuntime().exec(new String[]{"sh", "-c", cmd});
-            process.waitFor();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            return reader.readLine();
-        } catch (Exception e) {
-            return null;
         }
     }
 }
