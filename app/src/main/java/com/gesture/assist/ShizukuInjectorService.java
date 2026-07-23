@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -15,6 +16,7 @@ public class ShizukuInjectorService extends Service {
     private static final String TAG = "ShizukuInjector";
     private boolean ready = false;
     private UltimateOptimizer optimizer;
+    private PowerManager.WakeLock wakeLock;
 
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
@@ -50,6 +52,11 @@ public class ShizukuInjectorService extends Service {
         super.onCreate();
         optimizer = new UltimateOptimizer(this);
 
+        // Giữ CPU không ngủ
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "DuongChai:WakeLock");
+        wakeLock.acquire(3600 * 1000L);
+
         if (Shizuku.pingBinder()) {
             if (Shizuku.checkSelfPermission() == 0) {
                 ready = true;
@@ -73,6 +80,9 @@ public class ShizukuInjectorService extends Service {
     @Override
     public void onDestroy() {
         unregisterReceiver(receiver);
+        if (wakeLock != null && wakeLock.isHeld()) {
+            wakeLock.release();
+        }
         super.onDestroy();
     }
 }
