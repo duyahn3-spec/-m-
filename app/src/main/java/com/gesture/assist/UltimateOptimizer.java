@@ -21,58 +21,58 @@ public class UltimateOptimizer {
     public void optimizeAll() {
         new Thread(() -> {
             try {
-                // === CPU ===
+                // CPU
                 runCommand("echo performance > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
                 runCommand("echo performance > /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor");
                 runCommand("echo 1000000 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq");
                 runCommand("echo 1000000 > /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq");
 
-                // === GPU ===
+                // GPU
                 runCommand("echo performance > /sys/class/kgsl/kgsl-3d0/devfreq/governor");
                 runCommand("echo 1000000000 > /sys/class/kgsl/kgsl-3d0/max_gpuclk");
 
-                // === Giữ tất cả core online ===
+                // Core online
                 for (int i = 0; i < 8; i++) {
                     runCommand("echo 1 > /sys/devices/system/cpu/cpu" + i + "/online");
                 }
 
-                // === I/O Scheduler & Read-ahead ===
+                // I/O
                 runCommand("echo cfq > /sys/block/mmcblk0/queue/scheduler");
                 runCommand("echo 2048 > /sys/block/mmcblk0/queue/read_ahead_kb");
 
-                // === VM ===
+                // VM
                 runCommand("echo 10 > /proc/sys/vm/swappiness");
                 runCommand("echo 50 > /proc/sys/vm/dirty_ratio");
                 runCommand("echo 30 > /proc/sys/vm/dirty_background_ratio");
                 runCommand("echo 1 > /proc/sys/vm/overcommit_memory");
 
-                // === Animation ===
+                // Animation
                 runCommand("settings put system window_animation_scale 0.0");
                 runCommand("settings put system transition_animation_scale 0.0");
                 runCommand("settings put system animator_duration_scale 0.0");
 
-                // === GPU Render ===
+                // GPU render
                 runCommand("settings put global force_gpu_rendering 1");
                 runCommand("setprop debug.hwui.renderer opengl");
                 runCommand("setprop debug.hwui.force_gpu 1");
 
-                // === Kill background ===
+                // Kill background
                 runCommand("cmd activity kill-all");
 
-                // === Performance mode ===
+                // Performance mode
                 runCommand("cmd power set-fixed-performance-mode-enabled true");
 
-                // === Tăng priority ===
-                runCommand("echo -n 0 > /proc/sys/kernel/panic_on_oops");
-                runCommand("echo -n 0 > /proc/sys/kernel/panic");
+                // Kernel
+                runCommand("echo 0 > /proc/sys/kernel/panic_on_oops");
+                runCommand("echo 0 > /proc/sys/kernel/panic");
 
-                // === TCP ===
+                // TCP
                 runCommand("echo 1 > /proc/sys/net/ipv4/tcp_low_latency");
 
-                // === Limit background ===
+                // Limit background
                 runCommand("settings put global background_process_limit 1");
 
-                // === Mount noatime ===
+                // Mount
                 runCommand("mount -o remount,noatime /data");
                 runCommand("mount -o remount,noatime /system");
 
