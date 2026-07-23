@@ -3,14 +3,9 @@ package com.gesture.assist;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.widget.Toast;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
 public class UltimateOptimizer {
-    private static final String TAG = "UltimateOptimizer";
     private Context context;
     private Handler handler = new Handler(Looper.getMainLooper());
 
@@ -21,62 +16,39 @@ public class UltimateOptimizer {
     public void optimizeAll() {
         new Thread(() -> {
             try {
-                // CPU Performance
-                runCommand("echo performance > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
-                runCommand("echo performance > /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor");
-                runCommand("echo 1000000 > /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq");
-                runCommand("echo 1000000 > /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq");
+                // === CPU (có thể không có tác dụng nếu kernel không cho) ===
+                ShizukuShell.runCommand("echo performance > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor");
+                ShizukuShell.runCommand("echo performance > /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor");
 
-                // GPU Performance
-                runCommand("echo performance > /sys/class/kgsl/kgsl-3d0/devfreq/governor");
-                runCommand("echo 1000000000 > /sys/class/kgsl/kgsl-3d0/max_gpuclk");
+                // === I/O ===
+                ShizukuShell.runCommand("echo cfq > /sys/block/mmcblk0/queue/scheduler");
+                ShizukuShell.runCommand("echo 2048 > /sys/block/mmcblk0/queue/read_ahead_kb");
 
-                // Giữ tất cả core online
-                for (int i = 0; i < 8; i++) {
-                    runCommand("echo 1 > /sys/devices/system/cpu/cpu" + i + "/online");
-                }
+                // === VM ===
+                ShizukuShell.runCommand("echo 10 > /proc/sys/vm/swappiness");
+                ShizukuShell.runCommand("echo 50 > /proc/sys/vm/dirty_ratio");
 
-                // I/O
-                runCommand("echo cfq > /sys/block/mmcblk0/queue/scheduler");
-                runCommand("echo 2048 > /sys/block/mmcblk0/queue/read_ahead_kb");
+                // === Animation (có tác dụng) ===
+                ShizukuShell.runCommand("settings put system window_animation_scale 0.0");
+                ShizukuShell.runCommand("settings put system transition_animation_scale 0.0");
+                ShizukuShell.runCommand("settings put system animator_duration_scale 0.0");
 
-                // VM
-                runCommand("echo 10 > /proc/sys/vm/swappiness");
-                runCommand("echo 50 > /proc/sys/vm/dirty_ratio");
-                runCommand("echo 30 > /proc/sys/vm/dirty_background_ratio");
-                runCommand("echo 1 > /proc/sys/vm/overcommit_memory");
+                // === GPU Render (có tác dụng) ===
+                ShizukuShell.runCommand("settings put global force_gpu_rendering 1");
+                ShizukuShell.runCommand("setprop debug.hwui.renderer opengl");
+                ShizukuShell.runCommand("setprop debug.hwui.force_gpu 1");
 
-                // Animation
-                runCommand("settings put system window_animation_scale 0.0");
-                runCommand("settings put system transition_animation_scale 0.0");
-                runCommand("settings put system animator_duration_scale 0.0");
+                // === Kill background ===
+                ShizukuShell.runCommand("cmd activity kill-all");
 
-                // GPU Render
-                runCommand("settings put global force_gpu_rendering 1");
-                runCommand("setprop debug.hwui.renderer opengl");
-                runCommand("setprop debug.hwui.force_gpu 1");
+                // === Pointer speed ===
+                ShizukuShell.runCommand("settings put system pointer_speed 50");
 
-                // Kill background
-                runCommand("cmd activity kill-all");
-
-                // Performance mode
-                runCommand("cmd power set-fixed-performance-mode-enabled true");
-
-                handler.post(() -> Toast.makeText(context, "✅ Tối ưu toàn bộ thành công!", Toast.LENGTH_LONG).show());
+                handler.post(() -> Toast.makeText(context, "✅ Tối ưu thành công!", Toast.LENGTH_LONG).show());
 
             } catch (Exception e) {
-                Log.e(TAG, "Optimize error", e);
+                handler.post(() -> Toast.makeText(context, "❌ Lỗi: " + e.getMessage(), Toast.LENGTH_LONG).show());
             }
         }).start();
-    }
-
-    private void runCommand(String cmd) {
-        try {
-            Process process = Runtime.getRuntime().exec(new String[]{"sh", "-c", cmd});
-            process.waitFor();
-            Log.d(TAG, "Executed: " + cmd);
-        } catch (Exception e) {
-            Log.e(TAG, "Failed: " + cmd, e);
-        }
     }
 }
