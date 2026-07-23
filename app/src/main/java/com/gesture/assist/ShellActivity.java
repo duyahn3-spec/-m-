@@ -11,9 +11,6 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
 public class ShellActivity extends Activity {
     private EditText inputCommand;
     private TextView outputView;
@@ -50,37 +47,14 @@ public class ShellActivity extends Activity {
         runButton.setEnabled(false);
 
         new Thread(() -> {
-            try {
-                Process process = Runtime.getRuntime().exec(new String[]{"sh", "-c", cmd});
-                process.waitFor();
-
-                StringBuilder output = new StringBuilder();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    output.append(line).append("\n");
-                }
-                BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-                String errorLine;
-                while ((errorLine = errorReader.readLine()) != null) {
-                    output.append("❌ ").append(errorLine).append("\n");
-                }
-
-                final String result = output.length() > 0 ? output.toString() : "✅ Done (no output)";
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    outputView.append(result + "\n");
-                    scrollView.fullScroll(View.FOCUS_DOWN);
-                    runButton.setEnabled(true);
-                    Toast.makeText(ShellActivity.this, "✅ Đã chạy xong!", Toast.LENGTH_SHORT).show();
-                });
-
-            } catch (Exception e) {
-                new Handler(Looper.getMainLooper()).post(() -> {
-                    outputView.append("❌ Lỗi: " + e.getMessage() + "\n");
-                    scrollView.fullScroll(View.FOCUS_DOWN);
-                    runButton.setEnabled(true);
-                });
-            }
+            String result = ShizukuShell.runCommand(cmd);
+            final String finalResult = result.isEmpty() ? "✅ Done (no output)" : result;
+            new Handler(Looper.getMainLooper()).post(() -> {
+                outputView.append(finalResult + "\n");
+                scrollView.fullScroll(View.FOCUS_DOWN);
+                runButton.setEnabled(true);
+                Toast.makeText(ShellActivity.this, "✅ Đã chạy xong!", Toast.LENGTH_SHORT).show();
+            });
         }).start();
     }
 }
