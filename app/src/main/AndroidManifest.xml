@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- QUYỀN CẦN THIẾT -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -17,6 +18,7 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="33">
 
+        <!-- ACTIVITY CHÍNH -->
         <activity
             android:name=".GestureAssistActivity"
             android:exported="true"
@@ -28,12 +30,14 @@
             </intent-filter>
         </activity>
 
+        <!-- SHELL ACTIVITY (NHẬP LỆNH ADB) -->
         <activity
             android:name=".ShellActivity"
             android:exported="true"
             android:screenOrientation="portrait"
             android:theme="@android:style/Theme.Black.NoTitleBar" />
 
+        <!-- ACCESSIBILITY SERVICE (BẮT TOUCH + KHUẾCH ĐẠI 100x) -->
         <service
             android:name=".GestureAssistService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
@@ -46,12 +50,14 @@
                 android:resource="@xml/accessibility_config" />
         </service>
 
+        <!-- SHIZUKU INJECTOR SERVICE (SWIPE + TỐI ƯU) -->
         <service
             android:name=".ShizukuInjectorService"
             android:permission="moe.shizuku.manager.permission.API_V23"
             android:enabled="true"
             android:exported="true" />
 
+        <!-- QUICK SETTINGS TILE (BẬT/TẮT KHUẾCH ĐẠI) -->
         <service
             android:name=".ResolutionTileService"
             android:icon="@android:drawable/ic_menu_camera"
@@ -63,6 +69,7 @@
             </intent-filter>
         </service>
 
+        <!-- BOOT RECEIVER (TỰ ĐỘNG CHẠY KHI REBOOT) -->
         <receiver
             android:name=".BootReceiver"
             android:exported="true">
@@ -72,4 +79,5 @@
         </receiver>
 
     </application>
+
 </manifest>
