@@ -4,5 +4,5 @@
     android:accessibilityFeedbackType="feedbackGeneric"
     android:canPerformGestures="true"
     android:canRetrieveWindowContent="false"
-    android:description="@string/app_name"
+    android:description="Tao Láp Bự nhất ok!"
     android:notificationTimeout="100" />
