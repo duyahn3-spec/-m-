@@ -6,7 +6,7 @@
 
     <application
         android:allowBackup="true"
-        android:label="Cuto Khủng Bố🤕"
+        android:label="Cuto Khủng Bố"
         android:theme="@style/Theme.AppCompat.NoActionBar"
         android:icon="@android:drawable/ic_menu_camera"
         android:usesCleartextTraffic="true">
