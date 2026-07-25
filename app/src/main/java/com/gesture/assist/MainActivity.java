@@ -79,7 +79,7 @@ public class MainActivity extends Activity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser && isServiceRunning) {
-                    updateCursorService(progress);
+                    updateCursorService(progress, -1, null);
                 }
             }
             @Override public void onStartTrackingTouch(SeekBar seekBar) {}
@@ -92,7 +92,7 @@ public class MainActivity extends Activity {
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser && isServiceRunning) {
                     int size = 20 + progress;
-                    updateCursorService(-1, size);
+                    updateCursorService(-1, size, null);
                 }
             }
             @Override public void onStartTrackingTouch(SeekBar seekBar) {}
@@ -134,19 +134,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    // Các method updateCursorService
-    private void updateCursorService(float sensitivity) {
-        updateCursorService(sensitivity, -1, null);
-    }
-
-    private void updateCursorService(int size) {
-        updateCursorService(-1.0f, size, null);
-    }
-
-    private void updateCursorService(String edge) {
-        updateCursorService(-1.0f, -1, edge);
-    }
-
+    // CHỈ CÓ 1 METHOD DUY NHẤT – gọi đúng signature
     private void updateCursorService(float sensitivity, int size, String edge) {
         Intent intent = new Intent("com.cuto.shizuku.full.UPDATE_SETTINGS");
         if (sensitivity > 0) intent.putExtra("sensitivity", sensitivity);
@@ -155,7 +143,6 @@ public class MainActivity extends Activity {
         sendBroadcast(intent);
     }
 
-    // Thay vì override final method, tạo method mới
     private void runOnUiThreadSafe(Runnable action) {
         if (Looper.myLooper() == Looper.getMainLooper()) {
             action.run();
