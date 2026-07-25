@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -33,24 +35,18 @@ public class MainActivity extends Activity {
         sbCursorSize = findViewById(R.id.sbCursorSize);
         spinnerTriggerEdge = findViewById(R.id.spinnerTriggerEdge);
 
-        // Spinner
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.trigger_edges, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerTriggerEdge.setAdapter(adapter);
 
-        // SeekBar sensitivity: max 1000
         sbSensitivity.setMax(1000);
-        sbSensitivity.setProgress(1000); // mặc định 1000
-
-        // SeekBar cursor size
+        sbSensitivity.setProgress(1000);
         sbCursorSize.setMax(80);
         sbCursorSize.setProgress(40);
 
-        // Kiểm tra Shizuku
         checkShizuku();
 
-        // Bật/tắt service
         btnToggleService.setOnClickListener(v -> {
             if (!Shizuku.pingBinder() || Shizuku.checkSelfPermission() != 0) {
                 Toast.makeText(this, "Cần Shizuku!", Toast.LENGTH_SHORT).show();
@@ -83,8 +79,7 @@ public class MainActivity extends Activity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser && isServiceRunning) {
-                    float sensitivity = progress; // progress = 0-1000
-                    updateCursorService(sensitivity);
+                    updateCursorService(progress);
                 }
             }
             @Override public void onStartTrackingTouch(SeekBar seekBar) {}
@@ -127,7 +122,7 @@ public class MainActivity extends Activity {
                 Shizuku.requestPermission(1000);
                 Shizuku.addRequestPermissionResultListener((requestCode, grantResult) -> {
                     if (requestCode == 1000 && grantResult == 0) {
-                        runOnUiThread(() -> {
+                        runOnUiThreadSafe(() -> {
                             tvShizukuStatus.setText("🟢 Shizuku: Đã kết nối");
                             tvShizukuStatus.setTextColor(0xFF55FF55);
                         });
@@ -139,16 +134,17 @@ public class MainActivity extends Activity {
         }
     }
 
+    // Các method updateCursorService
     private void updateCursorService(float sensitivity) {
         updateCursorService(sensitivity, -1, null);
     }
 
     private void updateCursorService(int size) {
-        updateCursorService(-1, size, null);
+        updateCursorService(-1.0f, size, null);
     }
 
     private void updateCursorService(String edge) {
-        updateCursorService(-1, -1, edge);
+        updateCursorService(-1.0f, -1, edge);
     }
 
     private void updateCursorService(float sensitivity, int size, String edge) {
@@ -159,11 +155,12 @@ public class MainActivity extends Activity {
         sendBroadcast(intent);
     }
 
-    private void runOnUiThread(Runnable action) {
-        if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
+    // Thay vì override final method, tạo method mới
+    private void runOnUiThreadSafe(Runnable action) {
+        if (Looper.myLooper() == Looper.getMainLooper()) {
             action.run();
         } else {
-            new android.os.Handler(android.os.Looper.getMainLooper()).post(action);
+            new Handler(Looper.getMainLooper()).post(action);
         }
     }
 
