@@ -50,7 +50,7 @@ public class MainActivity extends Activity {
             }
             Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
             startActivity(intent);
-            Toast.makeText(this, "🎮 Bật Cuto Gamepad trong Trợ năng!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "🎮 Địt mẹ mày suku chưa¿🤕!", Toast.LENGTH_LONG).show();
         });
     }
 }
