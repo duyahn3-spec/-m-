@@ -1,53 +1,36 @@
 package com.gesture.assist;
 
 import android.accessibilityservice.AccessibilityService;
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
+import android.accessibilityservice.GestureDescription;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
+import android.graphics.Path;
 import android.graphics.PixelFormat;
+import android.graphics.Point;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Process;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.view.Gravity;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.WindowManager;
-import android.widget.RemoteViews;
+import android.widget.ImageView;
 import android.widget.Toast;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 public class GestureAssistService extends AccessibilityService {
-    private static final float SCALE_FACTOR = 100.0f;
-    private static final String CHANNEL_ID = "shell_channel";
     private WindowManager wm;
     private OverlayView overlay;
-    private boolean isActive = true;
     private Vibrator vibrator;
-    private float lastX, lastY;
-    private boolean overlayCreated = false;
-    private Handler handler = new Handler(Looper.getMainLooper());
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
+    private ImageView cursorView;
+    private WindowManager.LayoutParams cursorParams;
 
-    private final BroadcastReceiver toggleReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if ("com.gesture.assist.TOGGLE_ALL".equals(intent.getAction())) {
-                isActive = intent.getBooleanExtra("enable", true);
-                Toast.makeText(GestureAssistService.this,
-                        isActive ? "🔥 Khuếch đại x" + SCALE_FACTOR : "🧊 Đã tắt",
-                        Toast.LENGTH_SHORT).show();
-            }
-        }
-    };
+    private float lastX, lastY;
+    private float cursorX, cursorY;
+    private boolean isCursorVisible = false;
+    private boolean isTrackpadActive = false;
+    private int screenWidth, screenHeight;
+
+    // HỆ SỐ NHẠY - TĂNG LÊN 10, 20 ĐỂ XOAY TÍT
+    private static final float SENSITIVITY = 5.0f;
 
     @Override
     public void onCreate() {
@@ -55,56 +38,18 @@ public class GestureAssistService extends AccessibilityService {
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
 
-        Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_DISPLAY);
+        Point size = new Point();
+        wm.getDefaultDisplay().getSize(size);
+        screenWidth = size.x;
+        screenHeight = size.y;
 
-        // Đăng ký receiver với flag an toàn cho Android 13+
-        IntentFilter filter = new IntentFilter("com.gesture.assist.TOGGLE_ALL");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(toggleReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
-        } else {
-            registerReceiver(toggleReceiver, filter);
-        }
+        createOverlay();
+        createCursorView();
 
-        // Tạo overlay trong background
-        handler.post(() -> createOverlayWithRetry());
-
-        // Tạo notification sau khi overlay
-        handler.postDelayed(this::startShellNotification, 1000);
-
-        // Khởi động ShizukuInjectorService (sau khi có quyền)
-        handler.post(() -> {
-            Intent serviceIntent = new Intent(this, ShizukuInjectorService.class);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(serviceIntent);
-            } else {
-                startService(serviceIntent);
-            }
-        });
-
-        Toast.makeText(this, "🔥 Khuếch đại x100 + Tối ưu", Toast.LENGTH_SHORT).show();
-    }
-
-    private void createOverlayWithRetry() {
-        if (overlayCreated) return;
-        int retries = 3;
-        while (retries-- > 0 && !overlayCreated) {
-            try {
-                createOverlay();
-                overlayCreated = true;
-                break;
-            } catch (Exception e) {
-                try { Thread.sleep(300); } catch (InterruptedException ignored) {}
-            }
-        }
-        if (!overlayCreated) {
-            Toast.makeText(this, "⚠️ Overlay không tạo được, kiểm tra quyền", Toast.LENGTH_LONG).show();
-        }
+        Toast.makeText(this, "Địt con mẹ! Cuto Khủng bố đã sẵn sàng! Vuốt đi!", Toast.LENGTH_LONG).show();
     }
 
     private void createOverlay() {
-        if (overlay != null) {
-            try { wm.removeView(overlay); } catch (Exception ignored) {}
-        }
         overlay = new OverlayView(this);
         overlay.setTouchInterceptor(this::processTouch);
 
@@ -122,74 +67,89 @@ public class GestureAssistService extends AccessibilityService {
         wm.addView(overlay, params);
     }
 
-    private void processTouch(MotionEvent event) {
-        if (!isActive) return;
+    private void createCursorView() {
+        cursorView = new ImageView(this);
+        cursorView.setBackgroundColor(0xFFFF0000);
+        cursorView.setVisibility(View.GONE);
 
+        cursorParams = new WindowManager.LayoutParams(
+                50, 50,
+                Build.VERSION.SDK_INT >= 26 ?
+                        WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY :
+                        WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT
+        );
+        cursorParams.gravity = Gravity.TOP | Gravity.START;
+        wm.addView(cursorView, cursorParams);
+    }
+
+    private void processTouch(MotionEvent event) {
         int action = event.getActionMasked();
         float x = event.getRawX();
         float y = event.getRawY();
 
+        boolean isInTrackpad = y > screenHeight * 0.35;
+
         if (action == MotionEvent.ACTION_DOWN) {
-            lastX = x;
-            lastY = y;
-            vibrate(3);
+            if (isInTrackpad) {
+                isTrackpadActive = true;
+                lastX = x;
+                lastY = y;
+                cursorX = x;
+                cursorY = Math.max(0, y - screenHeight * 0.3f);
+                showCursor(cursorX, cursorY);
+                vibrate(8);
+            }
             return;
         }
 
-        if (action == MotionEvent.ACTION_MOVE || action == MotionEvent.ACTION_UP) {
-            float dx = (x - lastX) * SCALE_FACTOR;
-            float dy = (y - lastY) * SCALE_FACTOR;
-            float boostedX = x + dx;
-            float boostedY = y + dy;
-
-            sendSwipe(lastX, lastY, boostedX, boostedY);
+        if (action == MotionEvent.ACTION_MOVE && isTrackpadActive) {
+            float dx = (x - lastX) * SENSITIVITY;
+            float dy = (y - lastY) * SENSITIVITY;
+            cursorX = Math.max(0, Math.min(screenWidth, cursorX + dx));
+            cursorY = Math.max(0, Math.min(screenHeight, cursorY + dy));
+            moveCursor(cursorX, cursorY);
             lastX = x;
             lastY = y;
+            return;
+        }
+
+        if (action == MotionEvent.ACTION_UP && isTrackpadActive) {
+            isTrackpadActive = false;
+            clickAt(cursorX, cursorY);
+            vibrate(12);
+            hideCursor();
         }
     }
 
-    private void sendSwipe(float x1, float y1, float x2, float y2) {
-        Intent intent = new Intent("com.gesture.assist.SWIPE");
-        intent.putExtra("x1", x1);
-        intent.putExtra("y1", y1);
-        intent.putExtra("x2", x2);
-        intent.putExtra("y2", y2);
-        intent.putExtra("duration", 0);
-        sendBroadcast(intent);
+    private void showCursor(float x, float y) {
+        isCursorVisible = true;
+        cursorView.setVisibility(View.VISIBLE);
+        cursorParams.x = (int) x - 25;
+        cursorParams.y = (int) y - 25;
+        wm.updateViewLayout(cursorView, cursorParams);
     }
 
-    private void startShellNotification() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Shell Commander",
-                    NotificationManager.IMPORTANCE_LOW);
-            NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-            if (manager != null) {
-                manager.createNotificationChannel(channel);
-            }
-        }
+    private void moveCursor(float x, float y) {
+        if (!isCursorVisible) return;
+        cursorParams.x = (int) x - 25;
+        cursorParams.y = (int) y - 25;
+        wm.updateViewLayout(cursorView, cursorParams);
+    }
 
-        RemoteViews views = new RemoteViews(getPackageName(), R.layout.notification_shell);
-        views.setTextViewText(R.id.shell_input_hint, "📟 Bấm để mở Shell Commander");
+    private void hideCursor() {
+        isCursorVisible = false;
+        cursorView.setVisibility(View.GONE);
+    }
 
-        Intent intent = new Intent(this, ShellActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-
-        Notification.Builder builder = new Notification.Builder(this, CHANNEL_ID)
-                .setContentTitle("Duong Chai Shell")
-                .setContentText("📟 Bấm để nhập lệnh ADB")
-                .setSmallIcon(android.R.drawable.ic_menu_camera)
-                .setOngoing(true)
-                .setContentIntent(pendingIntent)
-                .setCustomContentView(views);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            builder.setStyle(new Notification.DecoratedCustomViewStyle());
-        }
-
-        Notification notification = builder.build();
-        startForeground(1, notification);
+    private void clickAt(float x, float y) {
+        Path path = new Path();
+        path.moveTo(x, y);
+        path.lineTo(x + 1, y + 1);
+        GestureDescription.Builder builder = new GestureDescription.Builder();
+        builder.addStroke(new GestureDescription.StrokeDescription(path, 0, 1));
+        dispatchGesture(builder.build(), null, null);
     }
 
     private void vibrate(int ms) {
@@ -203,12 +163,8 @@ public class GestureAssistService extends AccessibilityService {
 
     @Override
     public void onDestroy() {
-        isActive = false;
-        unregisterReceiver(toggleReceiver);
-        if (overlay != null) {
-            try { wm.removeView(overlay); } catch (Exception ignored) {}
-        }
-        executor.shutdownNow();
+        if (overlay != null) wm.removeView(overlay);
+        if (cursorView != null) wm.removeView(cursorView);
         super.onDestroy();
     }
 
@@ -218,32 +174,18 @@ public class GestureAssistService extends AccessibilityService {
     @Override
     public void onInterrupt() {}
 
-    private static class OverlayView extends android.view.View {
+    private static class OverlayView extends View {
         private TouchInterceptor interceptor;
-
-        public OverlayView(Context context) {
-            super(context);
-            setFocusable(false);
-        }
-
-        public void setTouchInterceptor(TouchInterceptor interceptor) {
-            this.interceptor = interceptor;
-        }
-
+        public OverlayView(Context context) { super(context); setFocusable(false); }
+        public void setTouchInterceptor(TouchInterceptor interceptor) { this.interceptor = interceptor; }
         @Override
         public boolean onTouchEvent(MotionEvent event) {
-            if (interceptor != null && event.getActionMasked() != MotionEvent.ACTION_OUTSIDE) {
-                MotionEvent raw = MotionEvent.obtain(event);
-                raw.setLocation(event.getRawX(), event.getRawY());
-                interceptor.onTouch(raw);
-                raw.recycle();
-                return false;
+            if (interceptor != null) {
+                interceptor.onTouch(event);
+                return true;
             }
             return false;
         }
-
-        interface TouchInterceptor {
-            void onTouch(MotionEvent event);
-        }
+        interface TouchInterceptor { void onTouch(MotionEvent event); }
     }
 }
