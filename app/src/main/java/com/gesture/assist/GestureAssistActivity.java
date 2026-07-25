@@ -15,7 +15,8 @@ public class GestureAssistActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button btnActivate = findViewById(R.id.btnActivate);
+        // Đã sửa thành toggleButton
+        Button btnActivate = findViewById(R.id.toggleButton);
 
         btnActivate.setOnClickListener(v -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
@@ -27,7 +28,7 @@ public class GestureAssistActivity extends Activity {
             Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
             startActivity(intent);
 
-            Toast.makeText(this, "Địt mẹ! mày đã suk đâu 🗿!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Địt mẹ! mày đã sukac đâu 🗿!", Toast.LENGTH_LONG).show();
         });
     }
 }
