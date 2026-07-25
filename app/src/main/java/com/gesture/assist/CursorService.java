@@ -32,10 +32,7 @@ public class CursorService extends Service {
     private float lastX, lastY;
     private boolean isTrackpadActive = false;
     private boolean isServiceActive = false;
-
-    // ========== SENSITIVITY MẶC ĐỊNH = 1000 ==========
     private float sensitivity = 1000.0f;
-
     private int cursorSize = 40;
     private String triggerEdge = "Phải";
 
@@ -213,13 +210,9 @@ public class CursorService extends Service {
 
             } catch (Exception e) {
                 e.printStackTrace();
-                runOnUiThread(() -> Toast.makeText(CursorService.this, "Lỗi click: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+                handler.post(() -> Toast.makeText(CursorService.this, "Lỗi click: " + e.getMessage(), Toast.LENGTH_SHORT).show());
             }
         }).start();
-    }
-
-    private void runOnUiThread(Runnable action) {
-        handler.post(action);
     }
 
     @Override
