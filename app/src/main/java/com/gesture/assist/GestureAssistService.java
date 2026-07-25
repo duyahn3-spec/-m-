@@ -30,7 +30,7 @@ public class GestureAssistService extends AccessibilityService {
     private int screenWidth, screenHeight;
 
     // HỆ SỐ NHẠY - TĂNG LÊN 10, 20 ĐỂ XOAY TÍT
-    private static final float SENSITIVITY = 5.0f;
+    private static final float SENSITIVITY = 10.0f;
 
     @Override
     public void onCreate() {
@@ -46,7 +46,7 @@ public class GestureAssistService extends AccessibilityService {
         createOverlay();
         createCursorView();
 
-        Toast.makeText(this, "Địt con mẹ! Cuto Khủng bố đã sẵn sàng! Vuốt đi!", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Địt con mẹ! rút cu ra! Sukak đi😵!", Toast.LENGTH_LONG).show();
     }
 
     private void createOverlay() {
