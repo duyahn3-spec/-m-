@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Cuto Khủng Bố</string>
+    <string name="accessibility_desc">Cuto Khủng Bố - Dùng Shizuku</string>
 </resources>
