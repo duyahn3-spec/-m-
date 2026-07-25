@@ -1,22 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    package="com.gesture.assist">
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
 
     <application
         android:allowBackup="true"
-        android:icon="@android:drawable/ic_menu_camera"
-        android:label="Duong Chai Dim OK"
+        android:label="Cuto Khủng bố 🤕"
         android:theme="@android:style/Theme.Black.NoTitleBar"
-        android:usesCleartextTraffic="true"
-        tools:targetApi="33">
+        android:icon="@android:drawable/ic_menu_camera"
+        android:usesCleartextTraffic="true">
 
         <activity
             android:name=".GestureAssistActivity"
@@ -29,17 +23,10 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".ShellActivity"
-            android:exported="true"
-            android:screenOrientation="portrait"
-            android:theme="@android:style/Theme.Black.NoTitleBar" />
-
         <service
             android:name=".GestureAssistService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
-            android:exported="true"
-            android:process=":gesture_service">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
@@ -47,32 +34,6 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_config" />
         </service>
-
-        <service
-            android:name=".ShizukuInjectorService"
-            android:permission="moe.shizuku.manager.permission.API_V23"
-            android:enabled="true"
-            android:exported="true"
-            android:process=":shizuku_service" />
-
-        <service
-            android:name=".ResolutionTileService"
-            android:icon="@android:drawable/ic_menu_camera"
-            android:label="🥶 OFF"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.service.quicksettings.action.QS_TILE" />
-            </intent-filter>
-        </service>
-
-        <receiver
-            android:name=".BootReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
 
     </application>
 </manifest>
