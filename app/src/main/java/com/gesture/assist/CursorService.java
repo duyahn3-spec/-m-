@@ -32,9 +32,9 @@ public class CursorService extends Service {
     private float lastX, lastY;
     private boolean isTrackpadActive = false;
     private boolean isServiceActive = false;
-    private float sensitivity = 1000.0f;
+    private float sensitivity = 10000.0f; // Tăng lên 10000
     private int cursorSize = 40;
-    private String triggerEdge = "Phải";
+    private String triggerEdge = "Phải"; // Không cần dùng nữa vì đã bỏ trigger
 
     private Handler handler = new Handler();
     private BroadcastReceiver settingsReceiver;
@@ -46,7 +46,7 @@ public class CursorService extends Service {
         createCursor();
         createOverlay();
         isServiceActive = true;
-        Toast.makeText(this, "🔥 Cuto Khủng Bố đã bật! (Sensitivity=1000)", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "🔥 Cuto Khủng Bố đã bật! (Sensitivity=10000, Fullscreen)", Toast.LENGTH_SHORT).show();
 
         settingsReceiver = new BroadcastReceiver() {
             @Override
@@ -121,7 +121,8 @@ public class CursorService extends Service {
         float x = event.getRawX();
         float y = event.getRawY();
 
-        boolean isInTrigger = checkTriggerArea(x, y);
+        // Đã bỏ hoàn toàn vùng trigger, con trỏ xuất hiện ở mọi vị trí
+        boolean isInTrigger = true; // Luôn đúng
 
         if (action == MotionEvent.ACTION_DOWN) {
             if (isInTrigger) {
@@ -150,19 +151,6 @@ public class CursorService extends Service {
             isTrackpadActive = false;
             clickAt(cursorX + cursorSize/2, cursorY + cursorSize/2);
             hideCursor();
-        }
-    }
-
-    private boolean checkTriggerArea(float x, float y) {
-        int triggerWidth = 80;
-        if ("Trái".equals(triggerEdge)) {
-            return x < triggerWidth;
-        } else if ("Phải".equals(triggerEdge)) {
-            return x > 1080 - triggerWidth;
-        } else if ("Dưới".equals(triggerEdge)) {
-            return y > 1920 - 120;
-        } else {
-            return x < triggerWidth || x > 1080 - triggerWidth;
         }
     }
 
