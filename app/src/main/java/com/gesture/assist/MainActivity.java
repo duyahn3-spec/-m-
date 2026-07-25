@@ -20,7 +20,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main); // Cần file activity_main.xml
 
         prefs = getSharedPreferences("gamepad_settings", MODE_PRIVATE);
 
@@ -28,25 +28,18 @@ public class MainActivity extends Activity {
         seekBar = findViewById(R.id.sensitivitySeekBar);
         tvLabel = findViewById(R.id.tvSensitivityLabel);
 
-        // Khôi phục giá trị đã lưu
         int savedSensitivity = prefs.getInt("sensitivity", 20000);
         seekBar.setProgress(savedSensitivity);
         tvLabel.setText("Độ nhạy (hiện tại: " + savedSensitivity + ")");
 
-        // Lắng nghe thay đổi SeekBar
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 tvLabel.setText("Độ nhạy (hiện tại: " + progress + ")");
-                // Lưu vào SharedPreferences
                 prefs.edit().putInt("sensitivity", progress).apply();
             }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
+            @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+            @Override public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
         btnActivate.setOnClickListener(v -> {
@@ -55,11 +48,9 @@ public class MainActivity extends Activity {
                         Uri.parse("package:" + getPackageName()));
                 startActivity(intent);
             }
-
             Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
             startActivity(intent);
-
-            Toast.makeText(this, "🎮 Địt cụ mày lọ chưa!🤬", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "🎮 Bật Cuto Gamepad trong Trợ năng!", Toast.LENGTH_LONG).show();
         });
     }
 }
