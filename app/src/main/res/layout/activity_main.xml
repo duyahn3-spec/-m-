@@ -7,7 +7,6 @@
     android:background="#0D0D0D"
     android:padding="24dp">
 
-    <!-- Tiêu đề (giữ nguyên) -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -28,7 +27,6 @@
         android:textSize="14sp"
         android:layout_marginBottom="20dp" />
 
-    <!-- Thanh trượt độ nhạy (thêm mới) -->
     <TextView
         android:id="@+id/tvSensitivityLabel"
         android:layout_width="wrap_content"
@@ -46,7 +44,6 @@
         android:progress="20000"
         android:layout_marginBottom="20dp" />
 
-    <!-- Chữ chửi thề (thay cho trigger edge) -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -56,7 +53,6 @@
         android:textStyle="bold"
         android:layout_marginBottom="20dp" />
 
-    <!-- Nút bấm chính (giữ nguyên) -->
     <Button
         android:id="@+id/btnActivate"
         android:layout_width="match_parent"
