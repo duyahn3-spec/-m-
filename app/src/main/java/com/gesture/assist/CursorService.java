@@ -1,7 +1,10 @@
 package com.cuto.shizuku.full;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.Handler;
@@ -29,11 +32,15 @@ public class CursorService extends Service {
     private float lastX, lastY;
     private boolean isTrackpadActive = false;
     private boolean isServiceActive = false;
-    private float sensitivity = 3.0f;
+
+    // ========== SENSITIVITY MẶC ĐỊNH = 1000 ==========
+    private float sensitivity = 1000.0f;
+
     private int cursorSize = 40;
     private String triggerEdge = "Phải";
 
     private Handler handler = new Handler();
+    private BroadcastReceiver settingsReceiver;
 
     @Override
     public void onCreate() {
@@ -42,7 +49,32 @@ public class CursorService extends Service {
         createCursor();
         createOverlay();
         isServiceActive = true;
-        Toast.makeText(this, "🔥 Cuto Khủng Bố đã bật!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "🔥 Cuto Khủng Bố đã bật! (Sensitivity=1000)", Toast.LENGTH_SHORT).show();
+
+        settingsReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if ("com.cuto.shizuku.full.UPDATE_SETTINGS".equals(intent.getAction())) {
+                    float sensitivity = intent.getFloatExtra("sensitivity", -1);
+                    int cursorSize = intent.getIntExtra("cursorSize", -1);
+                    String triggerEdge = intent.getStringExtra("triggerEdge");
+                    if (sensitivity > 0) {
+                        CursorService.this.sensitivity = sensitivity;
+                    }
+                    if (cursorSize > 0) {
+                        CursorService.this.cursorSize = cursorSize;
+                        cursorParams.width = cursorSize;
+                        cursorParams.height = cursorSize;
+                        wm.updateViewLayout(cursorView, cursorParams);
+                    }
+                    if (triggerEdge != null) {
+                        CursorService.this.triggerEdge = triggerEdge;
+                    }
+                }
+            }
+        };
+        IntentFilter filter = new IntentFilter("com.cuto.shizuku.full.UPDATE_SETTINGS");
+        registerReceiver(settingsReceiver, filter);
     }
 
     private void createCursor() {
@@ -109,8 +141,8 @@ public class CursorService extends Service {
         if (action == MotionEvent.ACTION_MOVE && isTrackpadActive) {
             float dx = (x - lastX) * sensitivity;
             float dy = (y - lastY) * sensitivity;
-            cursorX = Math.max(0, Math.min(1080, cursorX + dx));
-            cursorY = Math.max(0, Math.min(1920, cursorY + dy));
+            cursorX = Math.max(0, Math.min(1080 - cursorSize, cursorX + dx));
+            cursorY = Math.max(0, Math.min(1920 - cursorSize, cursorY + dy));
             updateCursorPosition();
             lastX = x;
             lastY = y;
@@ -119,13 +151,12 @@ public class CursorService extends Service {
 
         if (action == MotionEvent.ACTION_UP && isTrackpadActive) {
             isTrackpadActive = false;
-            clickAt(cursorX, cursorY);
+            clickAt(cursorX + cursorSize/2, cursorY + cursorSize/2);
             hideCursor();
         }
     }
 
     private boolean checkTriggerArea(float x, float y) {
-        // Mặc định: cạnh phải
         int triggerWidth = 80;
         if ("Trái".equals(triggerEdge)) {
             return x < triggerWidth;
@@ -134,7 +165,6 @@ public class CursorService extends Service {
         } else if ("Dưới".equals(triggerEdge)) {
             return y > 1920 - 120;
         } else {
-            // Trái & Phải
             return x < triggerWidth || x > 1080 - triggerWidth;
         }
     }
@@ -148,8 +178,8 @@ public class CursorService extends Service {
     }
 
     private void updateCursorPosition() {
-        cursorParams.x = (int) cursorX - cursorSize/2;
-        cursorParams.y = (int) cursorY - cursorSize/2;
+        cursorParams.x = (int) cursorX;
+        cursorParams.y = (int) cursorY;
         wm.updateViewLayout(cursorView, cursorParams);
     }
 
@@ -183,18 +213,13 @@ public class CursorService extends Service {
 
             } catch (Exception e) {
                 e.printStackTrace();
+                runOnUiThread(() -> Toast.makeText(CursorService.this, "Lỗi click: " + e.getMessage(), Toast.LENGTH_SHORT).show());
             }
         }).start();
     }
 
-    public void updateSettings(float sensitivity, int cursorSize, String triggerEdge) {
-        this.sensitivity = sensitivity;
-        this.cursorSize = cursorSize;
-        this.triggerEdge = triggerEdge;
-        // Cập nhật kích thước con trỏ
-        cursorParams.width = cursorSize;
-        cursorParams.height = cursorSize;
-        wm.updateViewLayout(cursorView, cursorParams);
+    private void runOnUiThread(Runnable action) {
+        handler.post(action);
     }
 
     @Override
@@ -202,6 +227,7 @@ public class CursorService extends Service {
         isServiceActive = false;
         if (cursorView != null) wm.removeView(cursorView);
         if (overlayView != null) wm.removeView(overlayView);
+        if (settingsReceiver != null) unregisterReceiver(settingsReceiver);
         super.onDestroy();
     }
 
@@ -209,4 +235,4 @@ public class CursorService extends Service {
     public IBinder onBind(Intent intent) {
         return null;
     }
-              }
+}
