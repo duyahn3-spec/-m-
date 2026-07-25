@@ -7,26 +7,34 @@
     android:background="#0D0D0D"
     android:padding="24dp">
 
+    <!-- Tiêu đề chính: CỘNG HÙNG BỐ -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="🎮 CUTO GAMEPAD"
-        android:textColor="#00FF00"
+        android:text="Láp Khủng Bố 😁"
+        android:textColor="#FF4444"
         android:textSize="32sp"
         android:textStyle="bold"
-        android:shadowColor="#00FF00"
+        android:shadowColor="#FF0000"
         android:shadowDx="0"
         android:shadowDy="0"
         android:shadowRadius="15" />
 
+    <!-- Dòng phụ: HDuong 👑 DZ🗿Vêlol! (thay thế AI DRIVER) -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Fake tay cầm chơi game - Cực nhạy"
-        android:textColor="#AAAAAA"
-        android:textSize="14sp"
-        android:layout_marginBottom="20dp" />
+        android:text="HDuong 👑 DZ🗿Vêlol!"
+        android:textColor="#FFD700"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="20dp"
+        android:shadowColor="#FFD700"
+        android:shadowDx="0"
+        android:shadowDy="0"
+        android:shadowRadius="8" />
 
+    <!-- Thanh trượt độ nhạy -->
     <TextView
         android:id="@+id/tvSensitivityLabel"
         android:layout_width="wrap_content"
@@ -44,6 +52,7 @@
         android:progress="20000"
         android:layout_marginBottom="20dp" />
 
+    <!-- Chữ chửi thề (giữ nguyên) -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -53,6 +62,7 @@
         android:textStyle="bold"
         android:layout_marginBottom="20dp" />
 
+    <!-- Nút bấm chính (giữ nguyên) -->
     <Button
         android:id="@+id/btnActivate"
         android:layout_width="match_parent"
