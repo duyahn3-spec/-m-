@@ -50,7 +50,7 @@ public class MainActivity extends Activity {
             }
             Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
             startActivity(intent);
-            Toast.makeText(this, "☠️Địt mẹ suk+lọ ngay 🥵!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "🤕 Địt Cụ làm quả lọ đê 💦!", Toast.LENGTH_LONG).show();
         });
     }
 }
