@@ -50,7 +50,6 @@ public class GestureAssistService extends AccessibilityService {
         screenWidth = size.x;
         screenHeight = size.y;
 
-        // Đọc độ nhạy đã lưu
         SharedPreferences prefs = getSharedPreferences("gamepad_settings", MODE_PRIVATE);
         sensitivity = prefs.getInt("sensitivity", 20000);
 
@@ -237,4 +236,4 @@ public class GestureAssistService extends AccessibilityService {
             void onTouch(MotionEvent event);
         }
     }
-                            }
+}
