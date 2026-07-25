@@ -20,7 +20,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main); // PHẢI CÓ FILE XML NÀY
+        setContentView(R.layout.activity_main);
 
         prefs = getSharedPreferences("gamepad_settings", MODE_PRIVATE);
 
@@ -50,7 +50,7 @@ public class MainActivity extends Activity {
             }
             Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
             startActivity(intent);
-            Toast.makeText(this, "Địt mẹ lọ đi 💦!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "☠️Địt mẹ suk+lọ ngay 🥵!", Toast.LENGTH_LONG).show();
         });
     }
 }
