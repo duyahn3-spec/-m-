@@ -56,7 +56,7 @@ public class GestureAssistService extends AccessibilityService {
         createOverlay();
         createCursorView();
 
-        Toast.makeText(this, "🎮 Cuto Gamepad (Sensitivity: " + (int)sensitivity + ")", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "🎮 Cu to khủng bố (Sensitivity: " + (int)sensitivity + ")", Toast.LENGTH_LONG).show();
     }
 
     private void createOverlay() {
