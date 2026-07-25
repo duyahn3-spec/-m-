@@ -2,6 +2,7 @@ package com.cuto.shizuku.full;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -19,7 +20,6 @@ public class MainActivity extends Activity {
     private Button btnToggleService;
     private SeekBar sbSensitivity, sbCursorSize;
     private Spinner spinnerTriggerEdge;
-    private CursorService cursorService;
     private boolean isServiceRunning = false;
 
     @Override
@@ -39,10 +39,18 @@ public class MainActivity extends Activity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerTriggerEdge.setAdapter(adapter);
 
+        // SeekBar sensitivity: max 1000
+        sbSensitivity.setMax(1000);
+        sbSensitivity.setProgress(1000); // mặc định 1000
+
+        // SeekBar cursor size
+        sbCursorSize.setMax(80);
+        sbCursorSize.setProgress(40);
+
         // Kiểm tra Shizuku
         checkShizuku();
 
-        // Bật/tắt dịch vụ
+        // Bật/tắt service
         btnToggleService.setOnClickListener(v -> {
             if (!Shizuku.pingBinder() || Shizuku.checkSelfPermission() != 0) {
                 Toast.makeText(this, "Cần Shizuku!", Toast.LENGTH_SHORT).show();
@@ -57,7 +65,8 @@ public class MainActivity extends Activity {
             } else {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                         !Settings.canDrawOverlays(this)) {
-                    Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            Uri.parse("package:" + getPackageName()));
                     startActivity(intent);
                     Toast.makeText(this, "Cần bật Overlay!", Toast.LENGTH_SHORT).show();
                     return;
@@ -74,7 +83,7 @@ public class MainActivity extends Activity {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser && isServiceRunning) {
-                    float sensitivity = 1.0f + (progress / 100.0f) * 9.0f;
+                    float sensitivity = progress; // progress = 0-1000
                     updateCursorService(sensitivity);
                 }
             }
@@ -98,7 +107,7 @@ public class MainActivity extends Activity {
         // Spinner: Vùng kích hoạt
         spinnerTriggerEdge.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
             @Override
-            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+            public void onItemSelected(android.widget.AdapterView<?> parent, android.view.View view, int position, long id) {
                 if (isServiceRunning) {
                     String edge = parent.getItemAtPosition(position).toString();
                     updateCursorService(-1, -1, edge);
@@ -143,14 +152,19 @@ public class MainActivity extends Activity {
     }
 
     private void updateCursorService(float sensitivity, int size, String edge) {
-        // Gửi cập nhật đến CursorService
-        // Vì service chạy riêng, cần dùng broadcast hoặc binder
-        // Ở đây tạm thời dùng broadcast
         Intent intent = new Intent("com.cuto.shizuku.full.UPDATE_SETTINGS");
         if (sensitivity > 0) intent.putExtra("sensitivity", sensitivity);
         if (size > 0) intent.putExtra("cursorSize", size);
         if (edge != null) intent.putExtra("triggerEdge", edge);
         sendBroadcast(intent);
+    }
+
+    private void runOnUiThread(Runnable action) {
+        if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
+            action.run();
+        } else {
+            new android.os.Handler(android.os.Looper.getMainLooper()).post(action);
+        }
     }
 
     @Override
