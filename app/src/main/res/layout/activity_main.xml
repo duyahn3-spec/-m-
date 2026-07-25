@@ -1,119 +1,181 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0A0000">
+    android:orientation="vertical"
+    android:background="#0D0D0D"
+    android:padding="24dp">
 
-    <!-- Nền đỏ - đen máu me -->
-    <View
+    <!-- Header với gradient -->
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#1A0000" />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#99000000" />
-
-    <!-- Hiệu ứng máu chảy -->
-    <View
-        android:id="@+id/bloodFlow"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#22FF0000"
-        android:alpha="0.4" />
-
-    <!-- Vòng lửa -->
-    <View
-        android:id="@+id/fireRing"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:layout_centerInParent="true"
-        android:background="#44FF2200"
-        android:alpha="0.3" />
-
-    <!-- Tiêu đề chính (bậy bạ) -->
-    <TextView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="50dp"
-        android:text="💥Vợ Chú Để Anh 💥 Dz 🗿bọn mày tổn luồi OK🔥"
-        android:textColor="#FF2200"
-        android:textSize="32sp"
-        android:fontFamily="sans-serif-black"
-        android:shadowColor="#FF0000"
-        android:shadowDx="0"
-        android:shadowDy="0"
-        android:shadowRadius="25"
-        android:letterSpacing="0.3" />
+        app:cardCornerRadius="16dp"
+        app:cardBackgroundColor="#1A1A1A"
+        app:cardElevation="8dp"
+        android:layout_marginBottom="24dp">
 
-    <!-- Phụ đề chửi tục -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:src="@android:drawable/ic_menu_camera"
+                android:background="@drawable/circle_bg"
+                android:padding="12dp"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CUTO KHỦNG BỐ"
+                android:textColor="#FFFFFF"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-condensed"
+                android:letterSpacing="0.1"
+                android:shadowColor="#FF00FF"
+                android:shadowDx="0"
+                android:shadowDy="0"
+                android:shadowRadius="8" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚡ AI DRIVER v3.0 · SHIZUKU"
+                android:textColor="#AA00FF"
+                android:textSize="12sp"
+                android:letterSpacing="0.2" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Trạng thái Shizuku -->
     <TextView
-        android:layout_width="wrap_content"
+        android:id="@+id/tvShizukuStatus"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/title"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="8dp"
-        android:text="⚔️ Địt mẹ đập lọ chưa ??🥀⚔️"
-        android:textColor="#FF6600"
+        android:text="🔴 Shizuku: Chưa kết nối"
+        android:textColor="#FF5555"
         android:textSize="14sp"
         android:fontFamily="monospace"
-        android:shadowColor="#FF4500"
-        android:shadowDx="0"
-        android:shadowDy="0"
-        android:shadowRadius="10"
-        android:letterSpacing="0.2" />
+        android:layout_marginBottom="16dp" />
 
-    <!-- Nút bấm chính (hình Oni) -->
+    <!-- Nút bật/tắt dịch vụ -->
     <Button
-        android:id="@+id/toggleButton"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:layout_centerInParent="true"
-        android:background="@drawable/btn_oni"
-        android:text="👹 😡Địt cụ mày thằng óc cặc😡"
+        android:id="@+id/btnToggleService"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="▶ BẬT DỊCH VỤ"
         android:textSize="18sp"
         android:textColor="#FFFFFF"
-        android:fontFamily="sans-serif-black"
-        android:gravity="center"
-        android:shadowColor="#FF0000"
-        android:shadowDx="0"
-        android:shadowDy="0"
-        android:shadowRadius="15" />
+        android:background="@drawable/btn_gradient"
+        android:fontFamily="sans-serif-condensed"
+        android:layout_marginBottom="24dp" />
 
-    <!-- Trạng thái -->
+    <!-- Menu chỉnh sửa nâng cao -->
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="16dp"
+        app:cardBackgroundColor="#1A1A1A"
+        app:cardElevation="8dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚙️ CÀI ĐẶT NÂNG CAO"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Độ nhạy -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tốc độ con trỏ"
+                android:textColor="#AAAAAA"
+                android:textSize="14sp" />
+
+            <SeekBar
+                android:id="@+id/sbSensitivity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100"
+                android:progress="50"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Kích thước con trỏ -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Kích thước con trỏ"
+                android:textColor="#AAAAAA"
+                android:textSize="14sp" />
+
+            <SeekBar
+                android:id="@+id/sbCursorSize"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="80"
+                android:progress="40"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Vùng kích hoạt -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Vị trí vùng kích hoạt"
+                android:textColor="#AAAAAA"
+                android:textSize="14sp" />
+
+            <Spinner
+                android:id="@+id/spinnerTriggerEdge"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:entries="@array/trigger_edges"
+                android:background="#333333"
+                android:layout_marginBottom="12dp" />
+
+            <!-- Nút nâng cao -->
+            <Button
+                android:id="@+id/btnAdvancedSettings"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="🔧 CÀI ĐẶT NÂNG CAO (GESTURES)"
+                android:textSize="14sp"
+                android:textColor="#FFFFFF"
+                android:background="#333333"
+                android:layout_marginBottom="8dp" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Footer -->
     <TextView
-        android:id="@+id/statusText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/toggleButton"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="35dp"
-        android:text="🔴 TRẠNG THÁI: Lọ 💦"
-        android:textColor="#FF2200"
-        android:textSize="18sp"
-        android:fontFamily="monospace"
-        android:shadowColor="#FF0000"
-        android:shadowDx="0"
-        android:shadowDy="0"
-        android:shadowRadius="12" />
-
-    <!-- Chữ ký cuối -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="30dp"
-        android:text="◆ HDuong👑DZ🤩 ◆ vêlờ🔥"
-        android:textColor="#FF4500"
+        android:layout_gravity="center"
+        android:layout_marginTop="24dp"
+        android:text="😈VợChúĐểAnh👑 HảiDương 🗿"
+        android:textColor="#FFD700"
         android:textSize="16sp"
-        android:fontFamily="monospace"
-        android:shadowColor="#FF0000"
+        android:textStyle="bold"
+        android:shadowColor="#FFD700"
         android:shadowDx="0"
         android:shadowDy="0"
         android:shadowRadius="8" />
 
-</RelativeLayout>
+</LinearLayout>
