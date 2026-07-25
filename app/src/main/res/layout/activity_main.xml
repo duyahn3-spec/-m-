@@ -1,162 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:gravity="center"
     android:background="#0D0D0D"
     android:padding="24dp">
 
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardCornerRadius="16dp"
-        app:cardBackgroundColor="#1A1A1A"
-        app:cardElevation="8dp"
-        android:layout_marginBottom="24dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="20dp"
-            android:gravity="center">
-
-            <ImageView
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:src="@android:drawable/ic_menu_camera"
-                android:background="@drawable/circle_bg"
-                android:padding="12dp"
-                android:layout_marginBottom="8dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="CUTO KHỦNG BỐ"
-                android:textColor="#FFFFFF"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-condensed"
-                android:letterSpacing="0.1"
-                android:shadowColor="#FF00FF"
-                android:shadowDx="0"
-                android:shadowDy="0"
-                android:shadowRadius="8" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="⚡ AI DRIVER v3.0 · SHIZUKU"
-                android:textColor="#AA00FF"
-                android:textSize="12sp"
-                android:letterSpacing="0.2" />
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
-
+    <!-- Tiêu đề (giữ nguyên) -->
     <TextView
-        android:id="@+id/tvShizukuStatus"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="🔴 Shizuku: Chưa kết nối"
-        android:textColor="#FF5555"
-        android:textSize="14sp"
-        android:fontFamily="monospace"
-        android:layout_marginBottom="16dp" />
-
-    <Button
-        android:id="@+id/btnToggleService"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="▶ BẬT DỊCH VỤ"
-        android:textSize="18sp"
-        android:textColor="#FFFFFF"
-        android:background="@drawable/btn_gradient"
-        android:fontFamily="sans-serif-condensed"
-        android:layout_marginBottom="24dp" />
-
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardCornerRadius="16dp"
-        app:cardBackgroundColor="#1A1A1A"
-        app:cardElevation="8dp">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="20dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="⚙️ CÀI ĐẶT NÂNG CAO"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="16dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tốc độ con trỏ (0-1000)"
-                android:textColor="#AAAAAA"
-                android:textSize="14sp" />
-
-            <SeekBar
-                android:id="@+id/sbSensitivity"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="1000"
-                android:progress="1000"
-                android:layout_marginBottom="12dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Kích thước con trỏ"
-                android:textColor="#AAAAAA"
-                android:textSize="14sp" />
-
-            <SeekBar
-                android:id="@+id/sbCursorSize"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="80"
-                android:progress="40"
-                android:layout_marginBottom="12dp" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Vị trí vùng kích hoạt"
-                android:textColor="#AAAAAA"
-                android:textSize="14sp" />
-
-            <Spinner
-                android:id="@+id/spinnerTriggerEdge"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:entries="@array/trigger_edges"
-                android:background="#333333"
-                android:layout_marginBottom="12dp" />
-
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
+        android:text="🎮 CUTO GAMEPAD"
+        android:textColor="#00FF00"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:shadowColor="#00FF00"
+        android:shadowDx="0"
+        android:shadowDy="0"
+        android:shadowRadius="15" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="24dp"
-        android:text="😈VợChúĐểAnh👑 HảiDương 🗿"
-        android:textColor="#FFD700"
+        android:text="Fake tay cầm chơi game - Cực nhạy"
+        android:textColor="#AAAAAA"
+        android:textSize="14sp"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Thanh trượt độ nhạy (thêm mới) -->
+    <TextView
+        android:id="@+id/tvSensitivityLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Độ nhạy (hiện tại: 20000)"
+        android:textColor="#FFFFFF"
         android:textSize="16sp"
+        android:layout_marginBottom="8dp" />
+
+    <SeekBar
+        android:id="@+id/sensitivitySeekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="20000"
+        android:progress="20000"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Chữ chửi thề (thay cho trigger edge) -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Địt Mẹ thằng lòn ngu căk!🤬"
+        android:textColor="#FF4444"
+        android:textSize="18sp"
         android:textStyle="bold"
-        android:shadowColor="#FFD700"
-        android:shadowDx="0"
-        android:shadowDy="0"
-        android:shadowRadius="8" />
+        android:layout_marginBottom="20dp" />
+
+    <!-- Nút bấm chính (giữ nguyên) -->
+    <Button
+        android:id="@+id/btnActivate"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:text="🎮 BẬT GAMEPAD ẢO"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:background="#4CAF50"
+        android:fontFamily="sans-serif-condensed" />
 
 </LinearLayout>
