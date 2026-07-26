@@ -108,25 +108,61 @@
                 android:progressTint="#00FF00"
                 android:layout_marginBottom="10dp" />
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:orientation="horizontal" android:layout_marginTop="6dp">
-                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
-                    android:layout_weight="1" android:text="⚡ Địt Con Mẹ" android:textColor="#FFFFFF" />
-                <Switch android:id="@+id/switchSuperTouch" android:checked="true" android:thumbTint="#FF00FF" />
+            <!-- Switch 1: Đã thêm layout_width và layout_height -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="6dp">
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="⚡ Địt Con Mẹ"
+                    android:textColor="#FFFFFF" />
+                <Switch
+                    android:id="@+id/switchSuperTouch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:thumbTint="#FF00FF" />
             </LinearLayout>
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            <!-- Switch 2 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="horizontal">
-                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
-                    android:layout_weight="1" android:text="🚀 Sàm Lon" android:textColor="#FFFFFF" />
-                <Switch android:id="@+id/switchPointerSpeed" android:checked="true" android:thumbTint="#00BFFF" />
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="🚀 Sàm Lon"
+                    android:textColor="#FFFFFF" />
+                <Switch
+                    android:id="@+id/switchPointerSpeed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:thumbTint="#00BFFF" />
             </LinearLayout>
 
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            <!-- Switch 3 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="horizontal">
-                <TextView android:layout_width="0dp" android:layout_height="wrap_content"
-                    android:layout_weight="1" android:text="🎮 Lọ Lọ Lọ" android:textColor="#FFFFFF" />
-                <Switch android:id="@+id/switchDispatch" android:thumbTint="#FF00FF" />
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="🎮 Lọ Lọ Lọ"
+                    android:textColor="#FFFFFF" />
+                <Switch
+                    android:id="@+id/switchDispatch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:thumbTint="#FF00FF" />
             </LinearLayout>
 
         </LinearLayout>
