@@ -27,7 +27,7 @@ public class GestureAssistService extends AccessibilityService {
     private int screenWidth, screenHeight;
 
     // ===== BUFF TỐI ĐA TOÀN BỘ =====
-    private float sensitivity = 100000000000.0f;   // 100 tỷ
+    private float sensitivity = 100000000000.0f;
     private float deadZone = 0.0f;
     private float acceleration = Float.MAX_VALUE;
     private int cursorSize = 1;
@@ -234,7 +234,6 @@ public class GestureAssistService extends AccessibilityService {
 
     @Override
     public void onDestroy() {
-        // Đây là phần bị lỗi - tao đã sửa lại đúng cú pháp
         if (overlay != null) {
             wm.removeView(overlay);
         }
@@ -275,24 +274,5 @@ public class GestureAssistService extends AccessibilityService {
         interface TouchInterceptor {
             void onTouch(MotionEvent event);
         }
-    }
-}ew.accessibility.AccessibilityEvent event) {}
-
-    @Override
-    public void onInterrupt() {}
-
-    private static class OverlayView extends View {
-        private TouchInterceptor interceptor;
-        public OverlayView(Context context) { super(context); setFocusable(false); }
-        public void setTouchInterceptor(TouchInterceptor interceptor) { this.interceptor = interceptor; }
-        @Override
-        public boolean onTouchEvent(MotionEvent event) {
-            if (interceptor != null) {
-                interceptor.onTouch(event);
-                return true;
-            }
-            return false;
-        }
-        interface TouchInterceptor { void onTouch(MotionEvent event); }
     }
 }
