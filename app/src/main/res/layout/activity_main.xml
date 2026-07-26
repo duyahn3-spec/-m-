@@ -13,7 +13,7 @@
         android:padding="24dp"
         android:gravity="center_horizontal">
 
-        <!-- TextView có ID tvTitle để MainActivity tìm thấy -->
+        <!-- tvTitle -->
         <TextView
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
@@ -130,6 +130,7 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- tvStatus -->
         <TextView
             android:id="@+id/tvStatus"
             android:layout_width="match_parent"
@@ -142,6 +143,7 @@
             android:background="#111111"
             android:layout_marginBottom="16dp" />
 
+        <!-- btnActivate -->
         <Button
             android:id="@+id/btnActivate"
             android:layout_width="match_parent"
