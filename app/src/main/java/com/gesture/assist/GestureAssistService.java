@@ -56,7 +56,7 @@ public class GestureAssistService extends AccessibilityService {
         createCursorView();
         applyOptimizations();
 
-        Toast.makeText(this, "🔥 Suk toạc BQD!", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "🔥 Suk Toạc BQĐ!", Toast.LENGTH_LONG).show();
     }
 
     private void loadSettings() {
@@ -245,10 +245,19 @@ public class GestureAssistService extends AccessibilityService {
     @Override
     public void onInterrupt() {}
 
+    // ===== NESTED CLASS OverlayView =====
     private static class OverlayView extends View {
         private TouchInterceptor interceptor;
-        public OverlayView(Context context) { super(context); setFocusable(false); }
-        public void setTouchInterceptor(TouchInterceptor interceptor) { this.interceptor = interceptor; }
+
+        public OverlayView(Context context) {
+            super(context);
+            setFocusable(false);
+        }
+
+        public void setTouchInterceptor(TouchInterceptor interceptor) {
+            this.interceptor = interceptor;
+        }
+
         @Override
         public boolean onTouchEvent(MotionEvent event) {
             if (interceptor != null) {
@@ -257,15 +266,12 @@ public class GestureAssistService extends AccessibilityService {
             }
             return false;
         }
-        interface TouchInterceptor { void onTouch(MotionEvent event); }
+
+        interface TouchInterceptor {
+            void onTouch(MotionEvent event);
+        }
     }
-}interface TouchInterceptor { void onTouch(MotionEvent event); }
-    }
-} void moveCursor() {
-        if (!isCursorVisible) return;
-        cursorParams.x = (int) cursorX;
-        cursorParams.y = (int) cursorY;
-        wm.updateViewLayout(cursorView, cursorParams);
+}cursorParams);
     }
 
     private void hideCursor() {
