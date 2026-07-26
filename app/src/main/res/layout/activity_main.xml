@@ -18,16 +18,15 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center"
-            android:background="@drawable/gradient_header"
+            android:background="#1A0A2E"
             android:padding="20dp"
-            android:layout_marginBottom="20dp"
-            android:alpha="0.95">
+            android:layout_marginBottom="20dp">
 
             <TextView
                 android:id="@+id/tvTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text=" CU TO KHỦNG BỐ 🤕"
+                android:text="⚡ CU TO KHỦNG BỐ ⚡"
                 android:textColor="#FF00FF"
                 android:textSize="28sp"
                 android:textStyle="bold"
@@ -60,14 +59,13 @@
                 android:layout_marginTop="4dp" />
         </LinearLayout>
 
-        <!-- Thay CardView bằng LinearLayout có background -->
+        <!-- Settings Card (dùng LinearLayout thường) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="20dp"
             android:background="#1A1A1A"
-            android:elevation="12dp"
             android:layout_marginBottom="16dp">
 
             <TextView
@@ -154,9 +152,8 @@
             android:text="⚡ ĐẬP LỌ NGAY"
             android:textSize="18sp"
             android:textColor="#FFFFFF"
-            android:background="@drawable/btn_gradient"
-            android:fontFamily="sans-serif-condensed"
-            android:elevation="8dp" />
+            android:background="#4CAF50"
+            android:fontFamily="sans-serif-condensed" />
 
         <!-- Footer -->
         <TextView
