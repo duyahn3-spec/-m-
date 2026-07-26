@@ -7,7 +7,7 @@
     <application
         android:allowBackup="true"
         android:label="Cu to khủng bố 🤕"
-        android:theme="@android:style/Theme.Black.NoTitleBar"
+        android:theme="@style/Theme.AppCompat.NoActionBar"
         android:icon="@android:drawable/ic_menu_camera"
         android:usesCleartextTraffic="true">
 
