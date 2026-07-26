@@ -271,13 +271,7 @@ public class GestureAssistService extends AccessibilityService {
             void onTouch(MotionEvent event);
         }
     }
-};
-    }
-
-    @Override
-    public void onDestroy() {
-        if (overlay != null) wm.removeView(overlay);
-        if (cursorView != null) wm.removeView(cursorView);
+}= null) wm.removeView(cursorView);
         super.onDestroy();
     }
 
