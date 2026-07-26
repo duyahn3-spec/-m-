@@ -234,8 +234,13 @@ public class GestureAssistService extends AccessibilityService {
 
     @Override
     public void onDestroy() {
-        if (overlay != null) wm.removeView(overlay);
-        if (cursorView != null) wm.removeView(cursorView);
+        // Đây là phần bị lỗi - tao đã sửa lại đúng cú pháp
+        if (overlay != null) {
+            wm.removeView(overlay);
+        }
+        if (cursorView != null) {
+            wm.removeView(cursorView);
+        }
         super.onDestroy();
     }
 
@@ -271,12 +276,7 @@ public class GestureAssistService extends AccessibilityService {
             void onTouch(MotionEvent event);
         }
     }
-}= null) wm.removeView(cursorView);
-        super.onDestroy();
-    }
-
-    @Override
-    public void onAccessibilityEvent(android.view.accessibility.AccessibilityEvent event) {}
+}ew.accessibility.AccessibilityEvent event) {}
 
     @Override
     public void onInterrupt() {}
