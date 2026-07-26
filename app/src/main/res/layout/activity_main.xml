@@ -130,7 +130,6 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- tvStatus -->
         <TextView
             android:id="@+id/tvStatus"
             android:layout_width="match_parent"
@@ -143,7 +142,6 @@
             android:background="#111111"
             android:layout_marginBottom="16dp" />
 
-        <!-- btnActivate -->
         <Button
             android:id="@+id/btnActivate"
             android:layout_width="match_parent"
