@@ -1,71 +1,173 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:background="#0D0D0D"
-    android:padding="24dp">
+    android:background="#0A0A0A"
+    android:fillViewport="true">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="🥵Láp Khủng BỐ💦"
-        android:textColor="#FF4444"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        android:shadowColor="#FF0000"
-        android:shadowDx="0"
-        android:shadowDy="0"
-        android:shadowRadius="15" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="HDuong 👑 DZ🗿Vêlol!"
-        android:textColor="#FFD700"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="20dp"
-        android:shadowColor="#FFD700"
-        android:shadowDx="0"
-        android:shadowDy="0"
-        android:shadowRadius="8" />
-
-    <TextView
-        android:id="@+id/tvSensitivityLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Độ nhạy (hiện tại: 20000)"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        android:layout_marginBottom="8dp" />
-
-    <SeekBar
-        android:id="@+id/sensitivitySeekBar"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:max="20000"
-        android:progress="20000"
-        android:layout_marginBottom="20dp" />
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center_horizontal">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Địt Mẹ thằng lòn ngu căk!🤬"
-        android:textColor="#FF4444"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="20dp" />
+        <!-- Tiêu đề AI hầm hố -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" CU TO KHỦNG BỐ 🤕"
+            android:textColor="#FF00FF"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:shadowColor="#FF00FF"
+            android:shadowDx="0"
+            android:shadowDy="0"
+            android:shadowRadius="25"
+            android:letterSpacing="0.2" />
 
-    <Button
-        android:id="@+id/btnActivate"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="🎮 BẬT GAMEPAD ẢO"
-        android:textSize="18sp"
-        android:textColor="#FFFFFF"
-        android:background="#4CAF50"
-        android:fontFamily="sans-serif-condensed" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="HDuong 👑 DZ🗿 Vêlol!"
+            android:textColor="#FFD700"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:shadowColor="#FFD700"
+            android:shadowDx="0"
+            android:shadowDy="0"
+            android:shadowRadius="10"
+            android:layout_marginBottom="20dp" />
 
-</LinearLayout>
+        <!-- Dòng chửi tục -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Địt Mẹ thằng lòn ngu căk!🤬"
+            android:textColor="#FF4444"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:shadowColor="#FF0000"
+            android:shadowDx="0"
+            android:shadowDy="0"
+            android:shadowRadius="15"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Card Settings -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="16dp"
+            app:cardBackgroundColor="#1A1A1A"
+            app:cardElevation="8dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔧 Chỉnh Láp ngay"
+                    android:textColor="#AA00FF"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Óc lon"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp" />
+                <SeekBar
+                    android:id="@+id/seekBarSensitivity"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="20000"
+                    android:progress="20000"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Địt mẹ mày (Nguuu)"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp" />
+                <SeekBar
+                    android:id="@+id/seekBarDensity"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="9999999900"
+                    android:min="10"
+                    android:progress="177"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Các Switch -->
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:layout_marginTop="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="⚡ nguuuuuu" android:textColor="#FFFFFF" />
+                    <Switch android:id="@+id/switchSuperTouch" android:checked="true" />
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="🚀 ắc Cọc" android:textColor="#FFFFFF" />
+                    <Switch android:id="@+id/switchPointerSpeed" android:checked="true" />
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                        android:layout_weight="1" android:text="🎮 Game Lon" android:textColor="#FFFFFF" />
+                    <Switch android:id="@+id/switchDispatch" />
+                </LinearLayout>
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Status -->
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🥵 Lọ để kích hoạt..."
+            android:textColor="#00FF00"
+            android:textSize="12sp"
+            android:fontFamily="monospace"
+            android:padding="12dp"
+            android:background="#111111"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Nút kích hoạt -->
+        <Button
+            android:id="@+id/btnActivate"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="⚡ đập lọ ngay"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/btn_gradient"
+            android:fontFamily="sans-serif-condensed" />
+
+        <!-- Footer chửi tục -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="⚡ Vợ Chú Để Anh👑Hải Dương 🗿"
+            android:textColor="#FF4500"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:shadowColor="#FF0000"
+            android:shadowDx="0"
+            android:shadowDy="0"
+            android:shadowRadius="8" />
+
+    </LinearLayout>
+</ScrollView>
