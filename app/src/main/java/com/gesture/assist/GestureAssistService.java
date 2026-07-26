@@ -26,15 +26,18 @@ public class GestureAssistService extends AccessibilityService {
     private boolean isTrackpadActive = false;
     private int screenWidth, screenHeight;
 
-    private float sensitivity = 20000.0f;
-    private int cursorSize = 40;
+    // ===== BUFF TỐI ĐA TOÀN BỘ =====
+    private float sensitivity = Float.MAX_VALUE;      // Max tuyệt đối
+    private float deadZone = 0.0f;                    // Không lọc nhiễu
+    private float acceleration = Float.MAX_VALUE;    // Gia tốc cực đại
+    private int cursorSize = 1;                       // Nhỏ nhất có thể
+
     private Handler handler = new Handler();
     private SharedPreferences prefs;
-
     private boolean isSuperTouchOn = true;
     private boolean isPointerSpeedOn = true;
     private boolean isDispatchOn = false;
-    private int currentDensity = 177;
+    private int currentDensity = 100;                 // Density thấp nhất
 
     @Override
     public void onCreate() {
@@ -53,12 +56,12 @@ public class GestureAssistService extends AccessibilityService {
         createCursorView();
         applyOptimizations();
 
-        Toast.makeText(this, "🔥 CU TO KHỦNG BỐ 🤕 đã sẵn sàng!", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "🔥 Vắt kiệt Tối đa lap!", Toast.LENGTH_LONG).show();
     }
 
     private void loadSettings() {
         sensitivity = prefs.getInt("sensitivity", 20000);
-        currentDensity = prefs.getInt("density", 177);
+        currentDensity = prefs.getInt("density", 100);
         isSuperTouchOn = prefs.getBoolean("super_touch", true);
         isPointerSpeedOn = prefs.getBoolean("pointer_speed", true);
         isDispatchOn = prefs.getBoolean("dispatch", false);
@@ -68,12 +71,14 @@ public class GestureAssistService extends AccessibilityService {
         new Thread(() -> {
             try {
                 if (isSuperTouchOn) {
-                    runCommand("setprop ro.min_pointer_dur 1");
+                    runCommand("setprop ro.min_pointer_dur 0");           // Giảm delay tối đa
                     runCommand("setprop debug.input.smoothing 0");
-                    runCommand("setprop windowsmgr.max_events_per_sec 300");
-                    runCommand("setprop touch.pressure.scale 0.001");
-                    runCommand("setprop touch.size.scale 0.001");
-                    runCommand("setprop persist.sys.touch.sampling.rate 240");
+                    runCommand("setprop windowsmgr.max_events_per_sec 9999"); // Max sự kiện
+                    runCommand("setprop touch.pressure.scale 0.0");
+                    runCommand("setprop touch.size.scale 0.0");
+                    runCommand("setprop touch.distance.scale 0.0");
+                    runCommand("setprop touch.size.bias 0.0");
+                    runCommand("setprop persist.sys.touch.sampling.rate 10000"); // Max sampling
                 }
                 if (isPointerSpeedOn) {
                     runCommand("settings put system pointer_speed 7");
@@ -84,6 +89,8 @@ public class GestureAssistService extends AccessibilityService {
                 runCommand("settings put system window_animation_scale 0.0");
                 runCommand("settings put system transition_animation_scale 0.0");
                 runCommand("settings put system animator_duration_scale 0.0");
+                runCommand("settings put system long_press_timeout 50");   // Nhấn giữ nhanh nhất
+                runCommand("settings put system scroll_friction 0.0");    // Không ma sát
                 runCommand("cmd activity kill-all");
             } catch (Exception e) {
                 e.printStackTrace();
@@ -151,8 +158,9 @@ public class GestureAssistService extends AccessibilityService {
         }
 
         if (action == MotionEvent.ACTION_MOVE && isTrackpadActive) {
-            float dx = (x - lastX) * sensitivity;
-            float dy = (y - lastY) * sensitivity;
+            float dx = (x - lastX) * sensitivity * acceleration;
+            float dy = (y - lastY) * sensitivity * acceleration;
+
             float newX = Math.max(0, Math.min(screenWidth - cursorSize, cursorX + dx));
             float newY = Math.max(0, Math.min(screenHeight - cursorSize, cursorY + dy));
 
@@ -168,7 +176,7 @@ public class GestureAssistService extends AccessibilityService {
             lastY = y;
 
             try {
-                Thread.sleep(5 + (int)(Math.random() * 5));
+                Thread.sleep(0); // KHÔNG DELAY
             } catch (InterruptedException ignored) {}
             return;
         }
@@ -189,7 +197,7 @@ public class GestureAssistService extends AccessibilityService {
         path.moveTo(x1, y1);
         path.lineTo(x2, y2);
         builder.addStroke(new android.accessibilityservice.GestureDescription
-            .StrokeDescription(path, 0, 1));
+            .StrokeDescription(path, 0, 0)); // Duration = 0 (nhanh nhất)
         dispatchGesture(builder.build(), null, null);
     }
 
@@ -200,7 +208,7 @@ public class GestureAssistService extends AccessibilityService {
         path.moveTo(x, y);
         path.lineTo(x + 1, y + 1);
         builder.addStroke(new android.accessibilityservice.GestureDescription
-            .StrokeDescription(path, 0, 1));
+            .StrokeDescription(path, 0, 0)); // Duration = 0
         dispatchGesture(builder.build(), null, null);
     }
 
@@ -251,25 +259,7 @@ public class GestureAssistService extends AccessibilityService {
         }
         interface TouchInterceptor { void onTouch(MotionEvent event); }
     }
-}lityservice.GestureDescription.Builder();
-        android.graphics.Path path = new android.graphics.Path();
-        path.moveTo(x, y);
-        path.lineTo(x + 1, y + 1);
-        builder.addStroke(new android.accessibilityservice.GestureDescription
-            .StrokeDescription(path, 0, 1));
-        dispatchGesture(builder.build(), null, null);
-    }
-
-    // ===== CURSOR CONTROL =====
-    private void showCursor() {
-        isCursorVisible = true;
-        cursorView.setVisibility(View.VISIBLE);
-        cursorParams.x = (int) cursorX;
-        cursorParams.y = (int) cursorY;
-        wm.updateViewLayout(cursorView, cursorParams);
-    }
-
-    private void moveCursor() {
+} void moveCursor() {
         if (!isCursorVisible) return;
         cursorParams.x = (int) cursorX;
         cursorParams.y = (int) cursorY;
