@@ -1,6 +1,5 @@
 package com.gesture.assist;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -13,7 +12,9 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity {
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
     private SeekBar seekBarSensitivity, seekBarDensity;
     private Switch switchSuperTouch, switchPointerSpeed, switchDispatch;
     private TextView tvStatus, tvTitle;
@@ -26,7 +27,6 @@ public class MainActivity extends Activity {
 
         prefs = getSharedPreferences("gamepad_settings", MODE_PRIVATE);
 
-        // Ánh xạ view - CÓ CHECK NULL ĐỂ KHÔNG CRASH
         try {
             tvTitle = findViewById(R.id.tvTitle);
             tvStatus = findViewById(R.id.tvStatus);
@@ -37,12 +37,10 @@ public class MainActivity extends Activity {
             switchDispatch = findViewById(R.id.switchDispatch);
             Button btnActivate = findViewById(R.id.btnActivate);
 
-            // Nếu tvTitle null thì set text mặc định (tránh crash)
             if (tvTitle != null) {
                 tvTitle.setText("CU TO KHỦNG BỐ 🤕");
             }
 
-            // Khôi phục cài đặt
             if (seekBarSensitivity != null) {
                 seekBarSensitivity.setProgress(prefs.getInt("sensitivity", 20000));
             }
@@ -59,7 +57,6 @@ public class MainActivity extends Activity {
                 switchDispatch.setChecked(prefs.getBoolean("dispatch", false));
             }
 
-            // Lưu khi thay đổi
             if (seekBarSensitivity != null) {
                 seekBarSensitivity.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                     @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
