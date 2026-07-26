@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.os.Build;
+import android.os.Environment;
 import android.os.Handler;
 import android.provider.Settings;
 import android.view.Gravity;
@@ -14,6 +15,12 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 public class GestureAssistService extends AccessibilityService {
     private WindowManager wm;
@@ -27,7 +34,6 @@ public class GestureAssistService extends AccessibilityService {
     private boolean isTrackpadActive = false;
     private int screenWidth, screenHeight;
 
-    // ===== LÕI TÀU: BUFF TỐI ĐA =====
     private float sensitivity = 100000.0f;
     private float acceleration = 5.0f;
     private int cursorSize = 1;
@@ -39,42 +45,70 @@ public class GestureAssistService extends AccessibilityService {
     private boolean isDispatchOn = false;
     private int currentDensity = 120;
 
+    private void writeLog(String msg) {
+        try {
+            File logFile = new File(Environment.getExternalStorageDirectory(), "cuto_service.log");
+            FileOutputStream fos = new FileOutputStream(logFile, true);
+            String time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+            fos.write((time + " - " + msg + "\n").getBytes());
+            fos.close();
+        } catch (Exception ignored) {}
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
-        wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        try {
+            writeLog("=== SERVICE START ===");
+            wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+            writeLog("WindowManager OK");
 
-        Point size = new Point();
-        wm.getDefaultDisplay().getSize(size);
-        screenWidth = size.x;
-        screenHeight = size.y;
+            Point size = new Point();
+            wm.getDefaultDisplay().getSize(size);
+            screenWidth = size.x;
+            screenHeight = size.y;
+            writeLog("Screen: " + screenWidth + "x" + screenHeight);
 
-        prefs = getSharedPreferences("gamepad_settings", MODE_PRIVATE);
-        loadSettings();
+            prefs = getSharedPreferences("gamepad_settings", MODE_PRIVATE);
+            loadSettings();
+            writeLog("Settings loaded");
 
-        if (Settings.canDrawOverlays(this)) {
-            createOverlay();
-            createCursorView();
-        } else {
-            Toast.makeText(this, "⚠️ sukcak nhanh đê'!", Toast.LENGTH_LONG).show();
+            if (Settings.canDrawOverlays(this)) {
+                writeLog("Overlay permission OK");
+                createOverlay();
+                createCursorView();
+                writeLog("Overlay + Cursor created");
+            } else {
+                writeLog("Overlay permission DENIED");
+                Toast.makeText(this, "⚠️ Cần bật quyền 'Hiển thị trên ứng dụng khác'!", Toast.LENGTH_LONG).show();
+            }
+
+            applySuperTouchCore();
+            writeLog("SuperTouch applied");
+
+            Toast.makeText(this, "🔥 LÕI TÀU ĐÃ KÍCH HOẠT!", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            writeLog("LỖI onCreate: " + e.getMessage());
+            e.printStackTrace();
         }
-
-        applySuperTouchCore();
-
-        Toast.makeText(this, "🔥 Địt Mẹ! (Lọ: 100.000)", Toast.LENGTH_LONG).show();
     }
 
     private void loadSettings() {
-        sensitivity = prefs.getInt("sensitivity", 20000);
-        currentDensity = prefs.getInt("density", 120);
-        isSuperTouchOn = prefs.getBoolean("super_touch", true);
-        isPointerSpeedOn = prefs.getBoolean("pointer_speed", true);
-        isDispatchOn = prefs.getBoolean("dispatch", false);
+        try {
+            sensitivity = prefs.getInt("sensitivity", 20000);
+            currentDensity = prefs.getInt("density", 120);
+            isSuperTouchOn = prefs.getBoolean("super_touch", true);
+            isPointerSpeedOn = prefs.getBoolean("pointer_speed", true);
+            isDispatchOn = prefs.getBoolean("dispatch", false);
+        } catch (Exception e) {
+            writeLog("LỖI loadSettings: " + e.getMessage());
+        }
     }
 
     private void applySuperTouchCore() {
         new Thread(() -> {
             try {
+                writeLog("applySuperTouchCore START");
                 runCommand("setprop ro.min_pointer_dur 0");
                 runCommand("setprop persist.sys.min_pointer_duration 0");
                 runCommand("setprop debug.input.smoothing 0");
@@ -87,7 +121,6 @@ public class GestureAssistService extends AccessibilityService {
                 runCommand("setprop persist.sys.touch.boost 1");
                 runCommand("setprop persist.sys.touch.extra_sensitivity 1");
                 runCommand("setprop debug.touch.sensitivity 100000");
-
                 if (isPointerSpeedOn) {
                     runCommand("settings put system pointer_speed 7");
                 }
@@ -99,8 +132,9 @@ public class GestureAssistService extends AccessibilityService {
                 runCommand("settings put system animator_duration_scale 0.0");
                 runCommand("settings put system long_press_timeout 50");
                 runCommand("settings put system scroll_friction 0.0");
+                writeLog("applySuperTouchCore DONE");
             } catch (Exception e) {
-                e.printStackTrace();
+                writeLog("LỖI applySuperTouchCore: " + e.getMessage());
             }
         }).start();
     }
@@ -109,47 +143,58 @@ public class GestureAssistService extends AccessibilityService {
         try {
             Process process = Runtime.getRuntime().exec(new String[]{"sh", "-c", cmd});
             process.waitFor();
+            writeLog("CMD: " + cmd + " -> OK");
         } catch (Exception e) {
-            // Bỏ qua lỗi
+            writeLog("CMD: " + cmd + " -> " + e.getMessage());
         }
     }
 
     private void createOverlay() {
-        if (overlay != null) return;
-        overlay = new OverlayView(this);
-        overlay.setTouchInterceptor(this::processTouch);
+        try {
+            if (overlay != null) return;
+            overlay = new OverlayView(this);
+            overlay.setTouchInterceptor(this::processTouch);
 
-        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.MATCH_PARENT,
-                WindowManager.LayoutParams.MATCH_PARENT,
-                Build.VERSION.SDK_INT >= 26 ?
-                        WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY :
-                        WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
-                        WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
-                PixelFormat.TRANSLUCENT
-        );
-        params.gravity = Gravity.TOP;
-        wm.addView(overlay, params);
+            WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    Build.VERSION.SDK_INT >= 26 ?
+                            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY :
+                            WindowManager.LayoutParams.TYPE_PHONE,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
+                            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                    PixelFormat.TRANSLUCENT
+            );
+            params.gravity = Gravity.TOP;
+            wm.addView(overlay, params);
+            writeLog("Overlay added");
+        } catch (Exception e) {
+            writeLog("LỖI createOverlay: " + e.getMessage());
+        }
     }
 
     private void createCursorView() {
-        if (cursorView != null) return;
-        cursorView = new ImageView(this);
-        cursorView.setBackgroundColor(0xFF00FF00);
-        cursorView.setVisibility(View.GONE);
-        cursorParams = new WindowManager.LayoutParams(
-                cursorSize, cursorSize,
-                Build.VERSION.SDK_INT >= 26 ?
-                        WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY :
-                        WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT
-        );
-        cursorParams.gravity = Gravity.TOP | Gravity.START;
-        cursorParams.x = 0;
-        cursorParams.y = 0;
-        wm.addView(cursorView, cursorParams);
+        try {
+            if (cursorView != null) return;
+            cursorView = new ImageView(this);
+            cursorView.setBackgroundColor(0xFF00FF00);
+            cursorView.setVisibility(View.GONE);
+            cursorParams = new WindowManager.LayoutParams(
+                    cursorSize, cursorSize,
+                    Build.VERSION.SDK_INT >= 26 ?
+                            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY :
+                            WindowManager.LayoutParams.TYPE_PHONE,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                    PixelFormat.TRANSLUCENT
+            );
+            cursorParams.gravity = Gravity.TOP | Gravity.START;
+            cursorParams.x = 0;
+            cursorParams.y = 0;
+            wm.addView(cursorView, cursorParams);
+            writeLog("Cursor added");
+        } catch (Exception e) {
+            writeLog("LỖI createCursorView: " + e.getMessage());
+        }
     }
 
     private void processTouch(MotionEvent event) {
@@ -203,58 +248,83 @@ public class GestureAssistService extends AccessibilityService {
     }
 
     private void sendGamepadMove(float x1, float y1, float x2, float y2) {
-        android.accessibilityservice.GestureDescription.Builder builder =
-            new android.accessibilityservice.GestureDescription.Builder();
-        android.graphics.Path path = new android.graphics.Path();
-        path.moveTo(x1, y1);
-        path.lineTo(x2, y2);
-        builder.addStroke(new android.accessibilityservice.GestureDescription
-            .StrokeDescription(path, 0, 0));
-        dispatchGesture(builder.build(), null, null);
+        try {
+            android.accessibilityservice.GestureDescription.Builder builder =
+                new android.accessibilityservice.GestureDescription.Builder();
+            android.graphics.Path path = new android.graphics.Path();
+            path.moveTo(x1, y1);
+            path.lineTo(x2, y2);
+            builder.addStroke(new android.accessibilityservice.GestureDescription
+                .StrokeDescription(path, 0, 0));
+            dispatchGesture(builder.build(), null, null);
+        } catch (Exception e) {
+            writeLog("LỖI sendGamepadMove: " + e.getMessage());
+        }
     }
 
     private void clickGamepad(float x, float y) {
-        android.accessibilityservice.GestureDescription.Builder builder =
-            new android.accessibilityservice.GestureDescription.Builder();
-        android.graphics.Path path = new android.graphics.Path();
-        path.moveTo(x, y);
-        path.lineTo(x + 1, y + 1);
-        builder.addStroke(new android.accessibilityservice.GestureDescription
-            .StrokeDescription(path, 0, 0));
-        dispatchGesture(builder.build(), null, null);
+        try {
+            android.accessibilityservice.GestureDescription.Builder builder =
+                new android.accessibilityservice.GestureDescription.Builder();
+            android.graphics.Path path = new android.graphics.Path();
+            path.moveTo(x, y);
+            path.lineTo(x + 1, y + 1);
+            builder.addStroke(new android.accessibilityservice.GestureDescription
+                .StrokeDescription(path, 0, 0));
+            dispatchGesture(builder.build(), null, null);
+        } catch (Exception e) {
+            writeLog("LỖI clickGamepad: " + e.getMessage());
+        }
     }
 
     private void showCursor() {
         if (cursorView == null) return;
-        isCursorVisible = true;
-        cursorView.setVisibility(View.VISIBLE);
-        cursorParams.x = (int) cursorX;
-        cursorParams.y = (int) cursorY;
-        wm.updateViewLayout(cursorView, cursorParams);
+        try {
+            isCursorVisible = true;
+            cursorView.setVisibility(View.VISIBLE);
+            cursorParams.x = (int) cursorX;
+            cursorParams.y = (int) cursorY;
+            wm.updateViewLayout(cursorView, cursorParams);
+        } catch (Exception e) {
+            writeLog("LỖI showCursor: " + e.getMessage());
+        }
     }
 
     private void moveCursor() {
         if (cursorView == null || !isCursorVisible) return;
-        cursorParams.x = (int) cursorX;
-        cursorParams.y = (int) cursorY;
-        wm.updateViewLayout(cursorView, cursorParams);
+        try {
+            cursorParams.x = (int) cursorX;
+            cursorParams.y = (int) cursorY;
+            wm.updateViewLayout(cursorView, cursorParams);
+        } catch (Exception e) {
+            writeLog("LỖI moveCursor: " + e.getMessage());
+        }
     }
 
     private void hideCursor() {
         if (cursorView == null) return;
-        isCursorVisible = false;
-        cursorView.setVisibility(View.GONE);
+        try {
+            isCursorVisible = false;
+            cursorView.setVisibility(View.GONE);
+        } catch (Exception e) {
+            writeLog("LỖI hideCursor: " + e.getMessage());
+        }
     }
 
     @Override
     public void onDestroy() {
-        if (overlay != null) {
-            try { wm.removeView(overlay); } catch (Exception ignored) {}
-        }
-        if (cursorView != null) {
-            try { wm.removeView(cursorView); } catch (Exception ignored) {}
+        try {
+            if (overlay != null) {
+                try { wm.removeView(overlay); } catch (Exception ignored) {}
+            }
+            if (cursorView != null) {
+                try { wm.removeView(cursorView); } catch (Exception ignored) {}
+            }
+        } catch (Exception e) {
+            writeLog("LỖI onDestroy: " + e.getMessage());
         }
         super.onDestroy();
+        writeLog("=== SERVICE DESTROY ===");
     }
 
     @Override
@@ -288,4 +358,4 @@ public class GestureAssistService extends AccessibilityService {
             void onTouch(MotionEvent event);
         }
     }
-                    }
+        }
