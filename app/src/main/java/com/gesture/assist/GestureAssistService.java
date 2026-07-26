@@ -34,7 +34,7 @@ public class GestureAssistService extends AccessibilityService {
     private boolean isSuperTouchOn = true;
     private boolean isPointerSpeedOn = true;
     private boolean isDispatchOn = false;
-    private int currentDensity = 240;
+    private int currentDensity = 177;
 
     @Override
     public void onCreate() {
@@ -53,7 +53,7 @@ public class GestureAssistService extends AccessibilityService {
         createCursorView();
         applyOptimizations();
 
-        Toast.makeText(this, "🔥 Ok bắt đầu lọooooo🥵!", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "🔥 CU TO KHỦNG BỐ 🤕 đã sẵn sàng!", Toast.LENGTH_LONG).show();
     }
 
     private void loadSettings() {
@@ -251,20 +251,7 @@ public class GestureAssistService extends AccessibilityService {
         }
         interface TouchInterceptor { void onTouch(MotionEvent event); }
     }
-}dMove(float x1, float y1, float x2, float y2) {
-        android.accessibilityservice.GestureDescription.Builder builder =
-            new android.accessibilityservice.GestureDescription.Builder();
-        android.graphics.Path path = new android.graphics.Path();
-        path.moveTo(x1, y1);
-        path.lineTo(x2, y2);
-        builder.addStroke(new android.accessibilityservice.GestureDescription
-            .StrokeDescription(path, 0, 1));
-        dispatchGesture(builder.build(), null, null);
-    }
-
-    private void clickGamepad(float x, float y) {
-        android.accessibilityservice.GestureDescription.Builder builder =
-            new android.accessibilityservice.GestureDescription.Builder();
+}lityservice.GestureDescription.Builder();
         android.graphics.Path path = new android.graphics.Path();
         path.moveTo(x, y);
         path.lineTo(x + 1, y + 1);
