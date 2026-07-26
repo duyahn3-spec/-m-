@@ -1,55 +1,123 @@
 package com.gesture.assist;
 
-import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.widget.Button;
+import android.widget.SeekBar;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity {
-    private TextView tvStatus;
-    private Button btnActivate;
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
+    private SeekBar seekBarSensitivity, seekBarDensity;
+    private Switch switchSuperTouch, switchPointerSpeed, switchDispatch;
+    private TextView tvStatus, tvTitle;
+    private SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-        try {
-            Toast.makeText(this, "Bước 1: setContentView", Toast.LENGTH_SHORT).show();
-            setContentView(R.layout.activity_main);
-            Toast.makeText(this, "Bước 2: setContentView OK", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            Toast.makeText(this, "LỖI LAYOUT: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            return;
+        prefs = getSharedPreferences("gamepad_settings", MODE_PRIVATE);
+
+        tvTitle = findViewById(R.id.tvTitle);
+        tvStatus = findViewById(R.id.tvStatus);
+        seekBarSensitivity = findViewById(R.id.seekBarSensitivity);
+        seekBarDensity = findViewById(R.id.seekBarDensity);
+        switchSuperTouch = findViewById(R.id.switchSuperTouch);
+        switchPointerSpeed = findViewById(R.id.switchPointerSpeed);
+        switchDispatch = findViewById(R.id.switchDispatch);
+        Button btnActivate = findViewById(R.id.btnActivate);
+
+        if (tvTitle != null) tvTitle.setText("☠️ CU TO KHỦNG BỐ 👹");
+
+        if (seekBarSensitivity != null) {
+            seekBarSensitivity.setProgress(prefs.getInt("sensitivity", 20000));
+        }
+        if (seekBarDensity != null) {
+            seekBarDensity.setProgress(prefs.getInt("density", 120));
+        }
+        if (switchSuperTouch != null) {
+            switchSuperTouch.setChecked(prefs.getBoolean("super_touch", true));
+        }
+        if (switchPointerSpeed != null) {
+            switchPointerSpeed.setChecked(prefs.getBoolean("pointer_speed", true));
+        }
+        if (switchDispatch != null) {
+            switchDispatch.setChecked(prefs.getBoolean("dispatch", false));
         }
 
-        try {
-            tvStatus = findViewById(R.id.tvStatus);
-            btnActivate = findViewById(R.id.btnActivate);
-            Toast.makeText(this, "Bước 3: findViewById OK", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            Toast.makeText(this, "LỖI FINDVIEW: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            return;
+        if (seekBarSensitivity != null) {
+            seekBarSensitivity.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    prefs.edit().putInt("sensitivity", progress).apply();
+                    updateStatus();
+                }
+                @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+                @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+            });
         }
 
-        btnActivate.setOnClickListener(v -> {
-            Toast.makeText(this, "Bước 4: Bấm nút", Toast.LENGTH_SHORT).show();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                        Uri.parse("package:" + getPackageName()));
+        if (seekBarDensity != null) {
+            seekBarDensity.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    prefs.edit().putInt("density", progress).apply();
+                    updateStatus();
+                }
+                @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+                @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+            });
+        }
+
+        if (switchSuperTouch != null) {
+            switchSuperTouch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                prefs.edit().putBoolean("super_touch", isChecked).apply();
+                updateStatus();
+            });
+        }
+        if (switchPointerSpeed != null) {
+            switchPointerSpeed.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                prefs.edit().putBoolean("pointer_speed", isChecked).apply();
+                updateStatus();
+            });
+        }
+        if (switchDispatch != null) {
+            switchDispatch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                prefs.edit().putBoolean("dispatch", isChecked).apply();
+                updateStatus();
+            });
+        }
+
+        if (btnActivate != null) {
+            btnActivate.setOnClickListener(v -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            Uri.parse("package:" + getPackageName()));
+                    startActivity(intent);
+                }
+                Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
                 startActivity(intent);
-            }
-            Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-            startActivity(intent);
-            Toast.makeText(this, "🔥 Đã mở cài đặt!", Toast.LENGTH_LONG).show();
-            tvStatus.setText("🟢 Đã bật");
-            tvStatus.setTextColor(0xFF00E676);
-        });
+                Toast.makeText(this, "🔥 làm cụ quả lọ đê!", Toast.LENGTH_LONG).show();
+            });
+        }
 
-        Toast.makeText(this, "Bước 5: Khởi tạo thành công!", Toast.LENGTH_LONG).show();
+        updateStatus();
+    }
+
+    private void updateStatus() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("🔥 Sukac: ").append(seekBarSensitivity != null ? seekBarSensitivity.getProgress() : 0).append("\n");
+        sb.append("📐 Vuốt Cu: ").append(seekBarDensity != null ? seekBarDensity.getProgress() : 0).append("\n");
+        sb.append("⚡ Địt Con Mẹ: ").append(switchSuperTouch != null ? (switchSuperTouch.isChecked() ? "ON" : "OFF") : "N/A").append("\n");
+        sb.append("🚀 Sàm Lon: ").append(switchPointerSpeed != null ? (switchPointerSpeed.isChecked() ? "ON" : "OFF") : "N/A").append("\n");
+        sb.append("🎮 Lọ Lọ Lọ: ").append(switchDispatch != null ? (switchDispatch.isChecked() ? "ON" : "OFF") : "N/A");
+        if (tvStatus != null) tvStatus.setText(sb.toString());
     }
 }
