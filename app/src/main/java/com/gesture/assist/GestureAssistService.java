@@ -26,7 +26,7 @@ public class GestureAssistService extends AccessibilityService {
     private boolean isTrackpadActive = false;
     private int screenWidth, screenHeight;
 
-    // ===== BUFF TỐI ĐA TOÀN BỘ =====
+    // ===== BUFF TỐI ĐA TOÀN BỘ (100 tỷ + Float.MAX_VALUE) =====
     private float sensitivity = 100000000000.0f;
     private float deadZone = 0.0f;
     private float acceleration = Float.MAX_VALUE;
@@ -56,7 +56,7 @@ public class GestureAssistService extends AccessibilityService {
         createCursorView();
         applyOptimizations();
 
-        Toast.makeText(this, "🔥 Suk Toạc BQĐ!", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "🔥 Suk Toạc BQĐ! - SENSITIVITY 100 TỶ", Toast.LENGTH_LONG).show();
     }
 
     private void loadSettings() {
@@ -71,6 +71,7 @@ public class GestureAssistService extends AccessibilityService {
         new Thread(() -> {
             try {
                 if (isSuperTouchOn) {
+                    // Các setprop "ẩn" của bọn Tàu để ép nhạy
                     runCommand("setprop ro.min_pointer_dur 0");
                     runCommand("setprop debug.input.smoothing 0");
                     runCommand("setprop windowsmgr.max_events_per_sec 9999");
@@ -79,6 +80,9 @@ public class GestureAssistService extends AccessibilityService {
                     runCommand("setprop touch.distance.scale 0.0");
                     runCommand("setprop touch.size.bias 0.0");
                     runCommand("setprop persist.sys.touch.sampling.rate 10000");
+                    runCommand("setprop persist.sys.touch.boost 1");
+                    runCommand("setprop persist.sys.touch.extra_sensitivity 1");
+                    runCommand("setprop debug.touch.sensitivity 1000000000");
                 }
                 if (isPointerSpeedOn) {
                     runCommand("settings put system pointer_speed 7");
@@ -234,12 +238,8 @@ public class GestureAssistService extends AccessibilityService {
 
     @Override
     public void onDestroy() {
-        if (overlay != null) {
-            wm.removeView(overlay);
-        }
-        if (cursorView != null) {
-            wm.removeView(cursorView);
-        }
+        if (overlay != null) wm.removeView(overlay);
+        if (cursorView != null) wm.removeView(cursorView);
         super.onDestroy();
     }
 
@@ -275,4 +275,4 @@ public class GestureAssistService extends AccessibilityService {
             void onTouch(MotionEvent event);
         }
     }
-}
+        }
