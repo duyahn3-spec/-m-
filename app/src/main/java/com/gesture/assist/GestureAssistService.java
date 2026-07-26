@@ -271,12 +271,7 @@ public class GestureAssistService extends AccessibilityService {
             void onTouch(MotionEvent event);
         }
     }
-}cursorParams);
-    }
-
-    private void hideCursor() {
-        isCursorVisible = false;
-        cursorView.setVisibility(View.GONE);
+};
     }
 
     @Override
