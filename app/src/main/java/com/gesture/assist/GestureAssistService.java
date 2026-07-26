@@ -3,10 +3,12 @@ package com.gesture.assist;
 import android.accessibilityservice.AccessibilityService;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.os.Build;
 import android.os.Handler;
+import android.provider.Settings;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -26,7 +28,7 @@ public class GestureAssistService extends AccessibilityService {
     private boolean isTrackpadActive = false;
     private int screenWidth, screenHeight;
 
-    // ===== BUFF TỐI ĐA TOÀN BỘ (100 tỷ + Float.MAX_VALUE) =====
+    // ===== BUFF TỐI ĐA TOÀN BỘ =====
     private float sensitivity = 100000000000.0f;
     private float deadZone = 0.0f;
     private float acceleration = Float.MAX_VALUE;
@@ -52,8 +54,14 @@ public class GestureAssistService extends AccessibilityService {
         prefs = getSharedPreferences("gamepad_settings", MODE_PRIVATE);
         loadSettings();
 
-        createOverlay();
-        createCursorView();
+        // === KIỂM TRA QUYỀN OVERLAY TRƯỚC KHI TẠO ===
+        if (Settings.canDrawOverlays(this)) {
+            createOverlay();
+            createCursorView();
+        } else {
+            Toast.makeText(this, "⚠️ Cần bật quyền 'Hiển thị trên ứng dụng khác'!", Toast.LENGTH_LONG).show();
+        }
+
         applyOptimizations();
 
         Toast.makeText(this, "🔥 Suk Toạc BQĐ! - SENSITIVITY 100 TỶ", Toast.LENGTH_LONG).show();
@@ -71,7 +79,6 @@ public class GestureAssistService extends AccessibilityService {
         new Thread(() -> {
             try {
                 if (isSuperTouchOn) {
-                    // Các setprop "ẩn" của bọn Tàu để ép nhạy
                     runCommand("setprop ro.min_pointer_dur 0");
                     runCommand("setprop debug.input.smoothing 0");
                     runCommand("setprop windowsmgr.max_events_per_sec 9999");
@@ -95,7 +102,7 @@ public class GestureAssistService extends AccessibilityService {
                 runCommand("settings put system animator_duration_scale 0.0");
                 runCommand("settings put system long_press_timeout 50");
                 runCommand("settings put system scroll_friction 0.0");
-                runCommand("cmd activity kill-all");
+                // ĐÃ XÓA DÒNG "cmd activity kill-all" (nguy hiểm)
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -112,8 +119,10 @@ public class GestureAssistService extends AccessibilityService {
     }
 
     private void createOverlay() {
+        if (overlay != null) return;
         overlay = new OverlayView(this);
         overlay.setTouchInterceptor(this::processTouch);
+
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.MATCH_PARENT,
@@ -129,6 +138,7 @@ public class GestureAssistService extends AccessibilityService {
     }
 
     private void createCursorView() {
+        if (cursorView != null) return;
         cursorView = new ImageView(this);
         cursorView.setBackgroundColor(0xFF00FF00);
         cursorView.setVisibility(View.GONE);
@@ -147,6 +157,11 @@ public class GestureAssistService extends AccessibilityService {
     }
 
     private void processTouch(MotionEvent event) {
+        if (!Settings.canDrawOverlays(this)) {
+            // Nếu mất quyền overlay, không xử lý touch
+            return;
+        }
+
         int action = event.getActionMasked();
         float x = event.getRawX();
         float y = event.getRawY();
@@ -217,6 +232,7 @@ public class GestureAssistService extends AccessibilityService {
     }
 
     private void showCursor() {
+        if (cursorView == null) return;
         isCursorVisible = true;
         cursorView.setVisibility(View.VISIBLE);
         cursorParams.x = (int) cursorX;
@@ -225,21 +241,26 @@ public class GestureAssistService extends AccessibilityService {
     }
 
     private void moveCursor() {
-        if (!isCursorVisible) return;
+        if (cursorView == null || !isCursorVisible) return;
         cursorParams.x = (int) cursorX;
         cursorParams.y = (int) cursorY;
         wm.updateViewLayout(cursorView, cursorParams);
     }
 
     private void hideCursor() {
+        if (cursorView == null) return;
         isCursorVisible = false;
         cursorView.setVisibility(View.GONE);
     }
 
     @Override
     public void onDestroy() {
-        if (overlay != null) wm.removeView(overlay);
-        if (cursorView != null) wm.removeView(cursorView);
+        if (overlay != null) {
+            try { wm.removeView(overlay); } catch (Exception ignored) {}
+        }
+        if (cursorView != null) {
+            try { wm.removeView(cursorView); } catch (Exception ignored) {}
+        }
         super.onDestroy();
     }
 
@@ -275,4 +296,4 @@ public class GestureAssistService extends AccessibilityService {
             void onTouch(MotionEvent event);
         }
     }
-        }
+}
