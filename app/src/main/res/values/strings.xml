@@ -2,5 +2,6 @@
 <resources>
     <string name="app_name">GestureAssist</string>
     <string name="calk">Calk</string>
-    <!-- Các string khác giữ nguyên -->
+    <string name="accessibility_desc">Accessibility Service</string>
+    <!-- Nếu có thêm lỗi string khác, mày cứ thêm tên vào đây với giá trị bất kỳ -->
 </resources>
