@@ -1,4 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Cu to khủng bố 🤕</string>
-    <string name="accessibility_desc">Cu to khủng bố Gân Guốc 🥵</string>
+    <string name="app_name">GestureAssist</string>
+    <string name="calk">Calk</string>
+    <!-- Các string khác giữ nguyên -->
 </resources>
