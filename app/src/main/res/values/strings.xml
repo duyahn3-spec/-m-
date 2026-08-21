@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <resources>
-    <string name="app_name">GestureAssist</string>
-    <string name="calk">Calk</string>
-    <string name="accessibility_desc">Accessibility Service</string>
-    <!-- Nếu có thêm lỗi string khác, mày cứ thêm tên vào đây với giá trị bất kỳ -->
+
+    <string name="app_name">
+        BG6 Realtime Tracker
+    </string>
+
 </resources>
