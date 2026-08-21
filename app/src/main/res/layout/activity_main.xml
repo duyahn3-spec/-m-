@@ -1,14 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="12dp">
 
     <Button
-        android:id="@+id/btnStart"
-        android:layout_width="wrap_content"
+        android:id="@+id/startButton"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Start Visual Assist" />
+        android:text="Start Screen Capture" />
+
+    <Button
+        android:id="@+id/stopButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Stop"
+        android:enabled="false" />
+
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:text="Status: Ready"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/metricsText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:text="Waiting..."
+        android:textSize="14sp" />
+
+    <ImageView
+        android:id="@+id/preview"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:adjustViewBounds="true"
+        android:background="#000000"
+        android:scaleType="fitCenter" />
 
 </LinearLayout>
