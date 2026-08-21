@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string-array name="trigger_edges">
-        <item>Trái</item>
-        <item>Phải</item>
-        <item>Dưới</item>
-        <item>Trái &amp; Phải</item>
-    </string-array>
-</resources>
