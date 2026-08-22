@@ -3,28 +3,28 @@ plugins {
 }
 
 android {
-    namespace 'com.example.bg6tracker'
-    compileSdk 35
+    namespace 'com.duyahn3.dimok'
+    compileSdk 34
 
     defaultConfig {
-        applicationId 'com.example.bg6tracker'
-        minSdk 26
-        targetSdk 35
+        applicationId 'com.duyahn3.dimok'
+        minSdk 23
+        targetSdk 34
         versionCode 1
-        versionName '1.0'
+        versionName "1.0"
     }
 
     buildTypes {
-        debug {
-            minifyEnabled false
-        }
-
         release {
             minifyEnabled false
             proguardFiles(
                 getDefaultProguardFile('proguard-android-optimize.txt'),
                 'proguard-rules.pro'
             )
+        }
+
+        debug {
+            minifyEnabled false
         }
     }
 
@@ -35,8 +35,6 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.core:core:1.15.0'
+    implementation 'androidx.core:core:1.13.1'
     implementation 'androidx.appcompat:appcompat:1.7.0'
-    implementation 'com.google.android.material:material:1.12.0'
-    implementation 'org.tensorflow:tensorflow-lite:2.14.0'
 }
