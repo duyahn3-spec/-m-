@@ -1,10 +1,10 @@
 name: Build BG6 Tracker APK
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -20,17 +20,14 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Make Gradle executable
+      - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+      - name: Build APK
+        run: ./gradlew assembleDebug --stacktrace --console=plain
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: BG6Tracker-debug
-          path: app/build/outputs/apk/debug/*.apk
+          name: BG6-Tracker-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
