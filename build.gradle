@@ -1,5 +1,13 @@
-plugins {
-    id 'com.android.application' version '8.0.2' apply false
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        // Sử dụng Android Gradle Plugin phiên bản ổn định tương thích
+        classpath "com.android.tools.build:gradle:8.1.4"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0"
+    }
 }
 
 allprojects {
@@ -9,6 +17,6 @@ allprojects {
     }
 }
 
-tasks.register("clean", Delete) {
+task clean(type: Delete) {
     delete rootProject.buildDir
 }
