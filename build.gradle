@@ -1,12 +1,5 @@
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        // Sử dụng Android Gradle Plugin phiên bản ổn định
-        classpath "com.android.tools.build:gradle:8.1.4"
-    }
+plugins {
+    id 'com.android.application' version '8.1.4' apply false
 }
 
 allprojects {
