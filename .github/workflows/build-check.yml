@@ -1,43 +1,46 @@
-name: Build BG6 Tracker APK
+name: Build Android APK
 
 on:
   workflow_dispatch:
   push:
     branches:
       - main
+      - master
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Java 17
+      - name: Setup JDK
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
+          cache: gradle
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
       - name: Make gradlew executable
-        run: chmod +x ./gradlew
+        run: chmod +x gradlew
 
-      - name: Check Java
-        run: java -version
+      - name: Show project
+        run: |
+          echo "===== ROOT ====="
+          find . -maxdepth 2 -type f | sort
+          echo "===== GRADLE ====="
+          ./gradlew --version
 
-      - name: Clean
-        run: ./gradlew clean --stacktrace
-
-      - name: Build APK
-        run: ./gradlew assembleDebug --stacktrace --info
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: ScreenTracker-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: app-debug
+          path: '**/build/outputs/apk/**/*.apk'
