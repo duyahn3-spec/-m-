@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "BG6Tracker"
+rootProject.name = "Duong Chai DimOK"
 include(":app")
