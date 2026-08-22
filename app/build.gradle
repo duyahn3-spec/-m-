@@ -1,15 +1,14 @@
 plugins {
     id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
 }
 
 android {
-    namespace 'com.example.bg6tracker' // Thay đổi package name tương ứng của bạn
+    namespace 'com.example.bg6tracker'
     compileSdk 34
 
     defaultConfig {
         applicationId "com.example.bg6tracker"
-        minSdk 24 // Yêu cầu API 21+ cho MediaProjection, khuyến nghị từ 24 trở lên
+        minSdk 24
         targetSdk 34
         versionCode 1
         versionName "1.0"
@@ -29,18 +28,14 @@ android {
         targetCompatibility JavaVersion.VERSION_11
     }
 
-    kotlinOptions {
-        jvmTarget = '11'
-    }
-    
-    // Đảm bảo không nén file .tflite trong thư mục assets để TensorFlow Lite đọc trực tiếp
+    // Không nén file .tflite trong thư mục assets để TensorFlow Lite đọc trực tiếp
     aaptOptions {
         noCompress "tflite"
     }
 }
 
 dependencies {
-    implementation 'androidx.core:core-ktx:1.12.0'
+    implementation 'androidx.core:core:1.12.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
@@ -48,7 +43,7 @@ dependencies {
     // TensorFlow Lite cho AI Inference (MoveNet Lightning INT8)
     implementation 'org.tensorflow:tensorflow-lite:2.14.0'
     implementation 'org.tensorflow:tensorflow-lite-support:0.4.4'
-    // Tùy chọn tăng tốc GPU cho TFLite (giúp đạt độ trễ < 5ms)
+    // Tăng tốc GPU delegate (giúp đạt độ trễ AI < 5ms)
     implementation 'org.tensorflow:tensorflow-lite-gpu:2.14.0'
     implementation 'org.tensorflow:tensorflow-lite-gpu-delegate:2.14.0'
 }
